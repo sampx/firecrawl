@@ -6,20 +6,32 @@
 
 ## 安装
 
-### 自动安装（推荐）
+### 已安装状态
+
+✅ `firecrawl` 命令已经安装到 `~/tools/bin/firecrawl`，可以在任何目录使用。
+
+### 重新安装（如需要）
+
+如果软连接被删除或需要重新安装：
 
 ```bash
 # 进入 Firecrawl 项目目录
 cd /Users/sam/coding/good/firecrawl
 
-# 运行安装脚本
-./scripts/install-command.sh
+# 创建软连接到 ~/tools/bin
+ln -sf $(pwd)/firecrawl ~/tools/bin/firecrawl
+
+# 验证安装
+which firecrawl
+firecrawl help
 ```
 
-### 手动安装
+### 首次安装（新用户）
+
+如果你是第一次安装，需要确保 ~/tools/bin 在 PATH 中：
 
 ```bash
-# 确保 ~/tools/bin 目录存在并添加到 PATH
+# 确保 ~/tools/bin 目录存在
 mkdir -p ~/tools/bin
 
 # 添加到 PATH（如果还没有）
@@ -27,7 +39,8 @@ echo 'export PATH="$HOME/tools/bin:$PATH"' >> ~/.zshrc  # 或 ~/.bashrc
 source ~/.zshrc  # 或 source ~/.bashrc
 
 # 创建软连接
-ln -sf /Users/sam/coding/good/firecrawl/firecrawl ~/tools/bin/firecrawl
+cd /Users/sam/coding/good/firecrawl
+ln -sf $(pwd)/firecrawl ~/tools/bin/firecrawl
 
 # 验证安装
 which firecrawl
