@@ -94,6 +94,7 @@ export async function enhanceBrandingWithLLM(
       schema,
       providerOptions: {
         openai: {
+          structuredOutputs: false,
           // Prefer loose schema so we use whatever the LLM returns (avoids validation
           // failures on minor schema drift or when model omits optional fields).
           strictJsonSchema: false,

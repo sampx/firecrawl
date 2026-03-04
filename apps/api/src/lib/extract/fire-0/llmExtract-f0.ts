@@ -387,6 +387,9 @@ export async function generateCompletions_F0({
             teamId: metadata.teamId,
           },
         },
+        openai: {
+          structuredOutputs: false,
+        },
       },
       experimental_telemetry: {
         isEnabled: true,

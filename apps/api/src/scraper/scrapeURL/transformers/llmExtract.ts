@@ -352,6 +352,7 @@ export async function generateCompletions({
               },
             },
             openai: {
+              structuredOutputs: false,
               strictJsonSchema: true,
             },
           },

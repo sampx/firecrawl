@@ -25,21 +25,20 @@ const providerList: Record<Provider, any> = {
   openai: createOpenAI({
     apiKey: config.OPENAI_API_KEY,
     baseURL: config.OPENAI_BASE_URL,
-  }), //OPENAI_API_KEY
+  }),
   ollama: createOllama({
     baseURL: config.OLLAMA_BASE_URL,
   }),
-  anthropic, //ANTHROPIC_API_KEY
-  groq, //GROQ_API_KEY
-  google, //GOOGLE_GENERATIVE_AI_API_KEY
+  anthropic,
+  groq,
+  google,
   openrouter: createOpenRouter({
     apiKey: config.OPENROUTER_API_KEY,
   }),
-  fireworks, //FIREWORKS_API_KEY
-  deepinfra, //DEEPINFRA_API_KEY
+  fireworks,
+  deepinfra,
   vertex: createVertex({
     project: "firecrawl",
-    //https://github.com/vercel/ai/issues/6644 bug
     baseURL:
       "https://aiplatform.googleapis.com/v1/projects/firecrawl/locations/global/publishers/google",
     location: "global",
@@ -58,8 +57,8 @@ export function getModel(name: string, provider: Provider = defaultProvider) {
     name = "gemini-2.5-pro";
   }
   const modelName = config.MODEL_NAME || name;
-  // o3-mini returns empty text via the Responses API — force Chat Completions
-  if (provider === "openai" && modelName.startsWith("o3-mini")) {
+
+  if (provider === "openai") {
     return providerList.openai.chat(modelName);
   }
   return providerList[provider](modelName);

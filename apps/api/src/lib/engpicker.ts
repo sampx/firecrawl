@@ -69,6 +69,11 @@ async function evaluateURL(
     schema: z.object({
       is_successful: z.boolean(),
     }),
+    providerOptions: {
+      openai: {
+        structuredOutputs: false,
+      },
+    },
     messages: [
       {
         role: "system",
