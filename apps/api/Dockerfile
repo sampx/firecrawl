@@ -60,13 +60,13 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://rsproxy.cn/rustup-init.sh | sh 
 
 # Configure Cargo to use Chinese mirror and git fetch with cli
 RUN mkdir -p $CARGO_HOME && \
+    echo '[source.crates-io]' >> $CARGO_HOME/config.toml && \
+    echo 'replace-with = "rsproxy-sparse"' >> $CARGO_HOME/config.toml && \
+    echo '[source.rsproxy-sparse]' >> $CARGO_HOME/config.toml && \
+    echo 'registry = "sparse+https://rsproxy.cn/index/"' >> $CARGO_HOME/config.toml && \
     echo '[net]' >> $CARGO_HOME/config.toml && \
     echo 'git-fetch-with-cli = true' >> $CARGO_HOME/config.toml && \
-    echo 'retry = 5' >> $CARGO_HOME/config.toml && \
-    echo '[source.crates-io]' >> $CARGO_HOME/config.toml && \
-    echo 'replace-with = "ustc"' >> $CARGO_HOME/config.toml && \
-    echo '[source.ustc]' >> $CARGO_HOME/config.toml && \
-    echo 'registry = "https://mirrors.ustc.edu.cn/crates.io-index/"' >> $CARGO_HOME/config.toml
+    echo 'retry = 5' >> $CARGO_HOME/config.toml
 
 # Build Go shared library
 FROM golang:1.24 AS go-build
@@ -111,13 +111,13 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://rsproxy.cn/rustup-init.sh | sh 
 
 # Configure Cargo
 RUN mkdir -p $CARGO_HOME && \
+    echo '[source.crates-io]' >> $CARGO_HOME/config.toml && \
+    echo 'replace-with = "rsproxy-sparse"' >> $CARGO_HOME/config.toml && \
+    echo '[source.rsproxy-sparse]' >> $CARGO_HOME/config.toml && \
+    echo 'registry = "sparse+https://rsproxy.cn/index/"' >> $CARGO_HOME/config.toml && \
     echo '[net]' >> $CARGO_HOME/config.toml && \
     echo 'git-fetch-with-cli = true' >> $CARGO_HOME/config.toml && \
-    echo 'retry = 5' >> $CARGO_HOME/config.toml && \
-    echo '[source.crates-io]' >> $CARGO_HOME/config.toml && \
-    echo 'replace-with = "ustc"' >> $CARGO_HOME/config.toml && \
-    echo '[source.ustc]' >> $CARGO_HOME/config.toml && \
-    echo 'registry = "https://mirrors.ustc.edu.cn/crates.io-index/"' >> $CARGO_HOME/config.toml
+    echo 'retry = 5' >> $CARGO_HOME/config.toml
 
 # Build Go shared library
 FROM golang:1.24 AS go-build
@@ -162,26 +162,28 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://rsproxy.cn/rustup-init.sh | sh 
 
 # Configure Cargo
 RUN mkdir -p $CARGO_HOME && \
+    echo '[source.crates-io]' >> $CARGO_HOME/config.toml && \
+    echo 'replace-with = "rsproxy-sparse"' >> $CARGO_HOME/config.toml && \
+    echo '[source.rsproxy-sparse]' >> $CARGO_HOME/config.toml && \
+    echo 'registry = "sparse+https://rsproxy.cn/index/"' >> $CARGO_HOME/config.toml && \
     echo '[net]' >> $CARGO_HOME/config.toml && \
     echo 'git-fetch-with-cli = true' >> $CARGO_HOME/config.toml && \
-    echo 'retry = 5' >> $CARGO_HOME/config.toml && \
-    echo '[source.crates-io]' >> $CARGO_HOME/config.toml && \
-    echo 'replace-with = "ustc"' >> $CARGO_HOME/config.toml && \
-    echo '[source.ustc]' >> $CARGO_HOME/config.toml && \
-    echo 'registry = "https://mirrors.ustc.edu.cn/crates.io-index/"' >> $CARGO_HOME/config.toml
+    echo 'retry = 5' >> $CARGO_HOME/config.toml
 
-# Copy source files
+# Copy dependency files and native module first for better caching
 COPY apps/api/pnpm-lock.yaml apps/api/pnpm-workspace.yaml apps/api/package.json ./
 COPY apps/api/tsconfig.json ./
-COPY apps/api/src ./src
 COPY apps/api/native ./native
 
-# Install dependencies and build native module
+# Install dependencies and build native module (This takes a long time, cache it!)
 RUN pnpm config set registry https://registry.npmmirror.com && \
     pnpm install --no-frozen-lockfile --ignore-scripts && \
     cd native && pnpm build && cd ..
 
-# Build the application
+# Copy source files AFTER building the heavy native module
+COPY apps/api/src ./src
+
+# Build the TypeScript application
 RUN pnpm run build
 
 # Remove dev dependencies

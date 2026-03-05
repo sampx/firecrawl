@@ -15,9 +15,10 @@ export async function concurrencyCheckController(
   res: Response<ConcurrencyCheckResponse>,
 ) {
   if (!req.acuc) {
-    return res.status(401).json({
-      success: false,
-      error: "Unauthorized",
+    return res.status(200).json({
+      success: true,
+      concurrency: 0,
+      maxConcurrency: 100,
     });
   }
 
