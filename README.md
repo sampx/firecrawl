@@ -1,78 +1,45 @@
-<h3 align="center">
-  <a name="readme-top"></a>
-  <img
-    src="https://raw.githubusercontent.com/firecrawl/firecrawl/main/img/firecrawl_logo.png"
-    height="200"
-  >
-</h3>
-
-<div align="center">
-  <a href="https://github.com/firecrawl/firecrawl/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/firecrawl/firecrawl" alt="License">
-  </a>
-  <a href="https://pepy.tech/project/firecrawl-py">
-    <img src="https://static.pepy.tech/badge/firecrawl-py" alt="Downloads">
-  </a>
-  <a href="https://GitHub.com/firecrawl/firecrawl/graphs/contributors">
-    <img src="https://img.shields.io/github/contributors/firecrawl/firecrawl.svg" alt="GitHub Contributors">
-  </a>
-  <a href="https://firecrawl.dev">
-    <img src="https://img.shields.io/badge/Visit-firecrawl.dev-orange" alt="Visit firecrawl.dev">
-  </a>
-</div>
-
-<div>
-  <p align="center">
-    <a href="https://twitter.com/firecrawl">
-      <img src="https://img.shields.io/badge/Follow%20on%20X-000000?style=for-the-badge&logo=x&logoColor=white" alt="Follow on X" />
-    </a>
-    <a href="https://www.linkedin.com/company/104100957">
-      <img src="https://img.shields.io/badge/Follow%20on%20LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="Follow on LinkedIn" />
-    </a>
-    <a href="https://discord.gg/firecrawl">
-      <img src="https://img.shields.io/badge/Join%20our%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join our Discord" />
-    </a>
-  </p>
-</div>
-
----
-
 # **🔥 Firecrawl**
 
-**Turn websites into LLM-ready data.** 
+**将网站转换为 LLM 可用的数据。**
 
-[**Firecrawl**](https://firecrawl.dev/?ref=github) is an API that scrapes, crawls, and extracts structured data from any website, powering AI agents and apps with real-time context from the web.
+[**Firecrawl**](https://firecrawl.dev/?ref=github) 是一个 API 服务，可以爬取、抓取和从任何网站提取结构化数据，为 AI 应用提供实时网络数据支持。
 
 Looking for our MCP? Check out the repo [here](https://github.com/firecrawl/firecrawl-mcp-server).
 
-*This repository is in development, and we're still integrating custom modules into the mono repo. It's not fully ready for self-hosted deployment yet, but you can run it locally.*
+---
 
-_Pst. Hey, you, join our stargazers :)_
+## 为什么选择 Firecrawl？
 
-<a href="https://github.com/firecrawl/firecrawl">
-  <img src="https://img.shields.io/github/stars/firecrawl/firecrawl.svg?style=social&label=Star&maxAge=2592000" alt="GitHub stars">
-</a>
+- **LLM 就绪输出**: 干净的 Markdown、结构化 JSON、截图、HTML 等
+- **行业领先的可靠性**: 在[基准测试](https://www.firecrawl.dev/blog/the-worlds-best-web-data-api-v25)中覆盖率 >80%
+- **处理复杂场景**: 代理、JavaScript 渲染、动态内容
+- **高度可定制**: 排除标签、认证墙后爬取、深度限制等
+- **媒体解析**: 自动从 PDF、DOCX 和图片中提取文本
+- **Actions**: 点击、滚动、输入、等待等交互操作
+- **批量处理**: 异步抓取数千个 URL
+- **变更追踪**: 监控网站内容变化
 
 ---
 
-## Why Firecrawl?
+## 功能概览
 
-- **LLM-ready output**: Clean markdown, structured JSON, screenshots, HTML, and more
-- **Industry-leading reliability**: >80% coverage on [benchmark evaluations](https://www.firecrawl.dev/blog/the-worlds-best-web-data-api-v25), outperforming every other provider tested
-- **Handles the hard stuff**: Proxies, JavaScript rendering, and dynamic content that breaks other scrapers
-- **Customization**: Exclude tags, crawl behind auth walls, max depth, and more
-- **Media parsing**: Automatic text extraction from PDFs, DOCX, and images
-- **Actions**: Click, scroll, input, wait, and more before extracting
-- **Batch processing**: Scrape thousands of URLs asynchronously
-- **Change tracking**: Monitor website content changes over time
+| 功能 | 描述 |
+|------|------|
+| [**Scrape**](#scrape) | 将 URL 转换为 Markdown、HTML、截图或结构化 JSON |
+| [**Search**](#search) | 搜索网络并获取结果页面的完整内容 |
+| [**Agent**](#agent) | 自动化数据收集，只需描述你需要什么 |
+| [**Crawl**](#crawl) | 单次请求爬取网站的所有 URL |
+| [**Map**](#map) | 即时发现网站上的所有 URL |
+| [**CLI**](#cli) | 命令行工具，适合 AI Agent 和开发者 |
 
 ---
 
-## Quick Start
+## 快速开始
 
-Sign up at [firecrawl.dev](https://firecrawl.dev) to get your API key and start extracting data in seconds. Try the [playground](https://firecrawl.dev/playground) to test it out.
+### 云服务
 
-### Make Your First API Request
+注册 [firecrawl.dev](https://firecrawl.dev) 获取 API Key，秒级开始使用：
+
 ```bash
 curl -X POST 'https://api.firecrawl.dev/v2/scrape' \
   -H 'Authorization: Bearer fc-YOUR_API_KEY' \
@@ -80,72 +47,141 @@ curl -X POST 'https://api.firecrawl.dev/v2/scrape' \
   -d '{"url": "https://example.com"}'
 ```
 
-Response:
-```json
-{
-  "success": true,
-  "data": {
-    "markdown": "# Example Domain\n\nThis domain is for use in illustrative examples...",
-    "metadata": {
-      "title": "Example Domain",
-      "sourceURL": "https://example.com"
-    }
-  }
-}
-```
+### 本地自托管
 
-### Install the Firecrawl Skill & CLI
-
-The Firecrawl Skill is an easy way for AI agents such as [Claude Code](https://claude.ai/code), [Antigravity](https://antigravity.google) and [OpenCode](https://opencode.ai) to use Firecrawl through the CLI.
-
-Install and configure the skill for all detected AI coding agents:
 ```bash
-npx -y firecrawl-cli@latest init --all --browser
+# 克隆项目
+git clone https://github.com/firecrawl/firecrawl.git
+cd firecrawl
+
+# 配置环境变量
+cp .env.example .env
+
+# 启动所有服务
+./scripts/start.sh
+
+# 或使用统一命令
+firecrawl start
 ```
 
-After installing, restart your agent for it to discover the new skill.
-
-You can also install the CLI globally:
-```bash
-npm install -g firecrawl-cli
-```
-
-Authenticate with your API key:
-```bash
-# Interactive login (opens browser)
-firecrawl login --browser
-
-# Or login with API key directly
-firecrawl login --api-key fc-YOUR_API_KEY
-
-# Or set via environment variable
-export FIRECRAWL_API_KEY=fc-YOUR_API_KEY
-```
-
-Try a quick scrape:
-```bash
-firecrawl https://example.com --only-main-content
-```
-
-See the full [Skill + CLI documentation](https://docs.firecrawl.dev/sdks/cli) for all available commands including search, map, crawl, agent, and browser automation.
+**本地访问地址:**
+- Firecrawl API: http://localhost:3002
+- RabbitMQ 管理界面: http://localhost:15672 (guest/guest)
 
 ---
 
-## Feature Overview
+## CLI 命令行工具
 
-| Feature | Description |
-|---------|-------------|
-| [**Scrape**](#scraping) | Convert any URL to markdown, HTML, screenshots, or structured JSON |
-| [**Search**](#search) | Search the web and get full page content from results |
-| [**Browse**](#browse) | Let agents safely interact with the web |
-| [**Map**](#map) | Discover all URLs on a website instantly |
-| [**Crawl**](#crawling) | Scrape all URLs of a website with a single request |
-| [**Agent**](#agent) | Automated data gathering, just describe what you need |
+Firecrawl 提供功能完整的 CLI 工具，专为 AI Agent 和开发者设计。
+
+### 安装
+
+```bash
+cd apps/cli
+pnpm install
+pnpm build
+npm link  # 全局链接 fc-cli 命令
+```
+
+### 核心命令
+
+```bash
+# 抓取单个 URL
+fc-cli scrape https://example.com
+
+# 搜索网络
+fc-cli search "firecrawl web scraping" --limit 5
+
+# 爬取网站
+fc-cli crawl https://example.com --limit 10
+fc-cli crawl-status <job_id>
+
+# 映射网站结构
+fc-cli map https://example.com
+
+# 查看使用量
+fc-cli usage
+```
+
+### AI 功能
+
+```bash
+# 结构化提取
+fc-cli extract https://example.com/product --prompt "提取产品价格和名称"
+
+# Agent 自动化
+fc-cli agent --prompt "查找最新的 AI 新闻"
+
+# 深度研究
+fc-cli deep-research "网络爬虫市场分析"
+
+# 生成 LLMs.txt
+fc-cli llmstxt https://example.com
+```
+
+### 交互模式
+
+```bash
+fc-cli --interactive
+```
+
+### 输出格式
+
+支持 `json`（默认）、`yaml`、`table` 三种格式：
+
+```bash
+fc-cli scrape https://example.com --format yaml -o result.yaml
+```
+
+### 配置
+
+| 环境变量 | CLI 选项 | 描述 | 默认值 |
+|----------|----------|------|--------|
+| `FIRECRAWL_API_URL` | `--api-url` | API 地址 | `http://localhost:3002` |
+| `FIRECRAWL_API_KEY` | `--api-key` | API Key | 无 |
+| `FIRECRAWL_OUTPUT` | `--format` | 输出格式 | `json` |
+
+---
+
+## 本地管理命令
+
+项目提供了统一的 `firecrawl` 命令和脚本管理服务：
+
+```bash
+# 启动所有服务
+firecrawl start
+# 或
+./scripts/start.sh
+
+# 查看服务状态（含健康检查和资源使用）
+firecrawl status
+# 或
+./scripts/status.sh
+
+# 查看日志
+firecrawl logs [service] [lines]
+# 或
+./scripts/logs.sh api 100
+
+# 停止服务
+firecrawl stop
+# 或
+./scripts/stop.sh
+
+# 重启服务
+firecrawl restart
+# 或
+./scripts/restart.sh
+```
+
+**可用服务**: `api`, `searxng`, `redis`, `searxng-redis`, `rabbitmq`, `playwright-service`, `nuq-postgres`
+
 ---
 
 ## Scrape
 
-Convert any URL to clean markdown, HTML, or structured data.
+将任何 URL 转换为 Markdown、HTML 或结构化数据。
+
 ```bash
 curl -X POST 'https://api.firecrawl.dev/v2/scrape' \
   -H 'Authorization: Bearer fc-YOUR_API_KEY' \
@@ -156,26 +192,8 @@ curl -X POST 'https://api.firecrawl.dev/v2/scrape' \
   }'
 ```
 
-Response:
-```json
-{
-  "success": true,
-  "data": {
-    "markdown": "# Firecrawl Docs\n\nTurn websites into LLM-ready data...",
-    "html": "<!DOCTYPE html><html>...",
-    "metadata": {
-      "title": "Quickstart | Firecrawl",
-      "description": "Firecrawl allows you to turn entire websites into LLM-ready markdown",
-      "sourceURL": "https://docs.firecrawl.dev",
-      "statusCode": 200
-    }
-  }
-}
-```
+### 结构化提取 (JSON Mode)
 
-### Extract Structured Data (JSON Mode)
-
-Extract structured data using a schema:
 ```python
 from firecrawl import Firecrawl
 from pydantic import BaseModel
@@ -191,40 +209,11 @@ result = app.scrape(
     'https://firecrawl.dev',
     formats=[{"type": "json", "schema": CompanyInfo.model_json_schema()}]
 )
-
 print(result.json)
 ```
-```json
-{"company_mission": "Turn websites into LLM-ready data", "is_open_source": true, "is_in_yc": true}
-```
 
-Or extract with just a prompt (no schema):
-```python
-result = app.scrape(
-    'https://firecrawl.dev',
-    formats=[{"type": "json", "prompt": "Extract the company mission"}]
-)
-```
+### Actions (抓取前交互)
 
-### Scrape Formats
-
-Available formats: `markdown`, `html`, `rawHtml`, `screenshot`, `links`, `json`, `branding`
-
-**Get a screenshot**
-```python
-doc = app.scrape("https://firecrawl.dev", formats=["screenshot"])
-print(doc.screenshot)  # Base64 encoded image
-```
-
-**Extract brand identity (colors, fonts, typography)**
-```python
-doc = app.scrape("https://firecrawl.dev", formats=["branding"])
-print(doc.branding)  # {"colors": {...}, "fonts": [...], "typography": {...}}
-```
-
-### Actions (Interact Before Scraping)
-
-Click, type, scroll, and more before extracting:
 ```python
 doc = app.scrape(
     url="https://example.com/login",
@@ -244,7 +233,8 @@ doc = app.scrape(
 
 ## Search
 
-Search the web and optionally scrape the results.
+搜索网络并可选抓取结果页面。
+
 ```bash
 curl -X POST 'https://api.firecrawl.dev/v2/search' \
   -H 'Authorization: Bearer fc-YOUR_API_KEY' \
@@ -255,118 +245,22 @@ curl -X POST 'https://api.firecrawl.dev/v2/search' \
   }'
 ```
 
-Response:
-```json
-{
-  "success": true,
-  "data": {
-    "web": [
-      {
-        "url": "https://www.firecrawl.dev/",
-        "title": "Firecrawl - The Web Data API for AI",
-        "description": "The web crawling, scraping, and search API for AI.",
-        "position": 1
-      }
-    ],
-    "images": [...],
-    "news": [...]
-  }
-}
-```
+### 搜索并抓取内容
 
-### Search with Content Scraping
-
-Get the full content of search results:
 ```python
-from firecrawl import Firecrawl
-
-firecrawl = Firecrawl(api_key="fc-YOUR_API_KEY")
-
 results = firecrawl.search(
     "firecrawl web scraping",
     limit=3,
-    scrape_options={
-        "formats": ["markdown", "links"]
-    }
+    scrape_options={"formats": ["markdown", "links"]}
 )
-```
-
----
-
-## Browse
-
-Give your agents a secure browser environment. Let them run code safely to gather data and take action on the web.
-```bash
-curl -X POST 'https://api.firecrawl.dev/v2/browser' \
-  -H 'Authorization: Bearer fc-YOUR_API_KEY' \
-  -H 'Content-Type: application/json'
-```
-
-Response:
-```json
-{
-  "success": true,
-  "id": "550e8400-e29b-41d4-a716-446655440000",
-  "cdpUrl": "wss://cdp-proxy.firecrawl.dev/cdp/550e8400-e29b-41d4-a716-446655440000",
-  "liveViewUrl": "https://liveview.firecrawl.dev/550e8400-e29b-41d4-a716-446655440000"
-}
-```
-
-### Execute Code in the Browser
-
-Run Playwright code, Python, or bash commands remotely:
-```javascript
-import Firecrawl from '@mendable/firecrawl-js';
-
-const firecrawl = new Firecrawl({ apiKey: "fc-YOUR_API_KEY" });
-
-// 1. Launch a session
-const session = await firecrawl.browser();
-
-// 2. Execute code
-const result = await firecrawl.browserExecute(session.id, {
-  code: `
-    await page.goto("https://news.ycombinator.com");
-    const title = await page.title();
-    console.log(title);
-  `,
-  language: "node",
-});
-console.log(result.result); // "Hacker News"
-
-// 3. Close
-await firecrawl.deleteBrowser(session.id);
-```
-
-### Persistent Sessions
-
-Save and reuse browser state (cookies, localStorage) across sessions:
-```javascript
-const session = await firecrawl.browser({
-  ttl: 600,
-  profile: {
-    name: "my-profile",
-    saveChanges: true,
-  },
-});
-```
-
-### agent-browser (Bash Mode)
-
-Instead of writing Playwright code, agents can send simple bash commands via [agent-browser](https://github.com/vercel-labs/agent-browser):
-```bash
-firecrawl browser "open https://example.com"
-firecrawl browser "snapshot"
-firecrawl browser "click @e5"
 ```
 
 ---
 
 ## Agent
 
-**The easiest way to get data from the web.** Describe what you need, and our AI agent searches, navigates, and extracts it. No URLs required.
+**获取网页数据最简单的方式。** 只需描述你需要什么，AI Agent 会自动搜索、导航和提取。
 
-Agent is the evolution of our `/extract` endpoint: faster, more reliable, and doesn't require you to know the URLs upfront.
 ```bash
 curl -X POST 'https://api.firecrawl.dev/v2/agent' \
   -H 'Authorization: Bearer fc-YOUR_API_KEY' \
@@ -376,98 +270,39 @@ curl -X POST 'https://api.firecrawl.dev/v2/agent' \
   }'
 ```
 
-Response:
-```json
-{
-  "success": true,
-  "data": {
-    "result": "Notion offers the following pricing plans:\n\n1. Free - $0/month...\n2. Plus - $10/seat/month...\n3. Business - $18/seat/month...",
-    "sources": ["https://www.notion.so/pricing"]
-  }
-}
-```
+### 结构化输出
 
-### Agent with Structured Output
-
-Use a schema to get structured data:
 ```python
-from firecrawl import Firecrawl
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
-app = Firecrawl(api_key="fc-YOUR_API_KEY")
-
 class Founder(BaseModel):
-    name: str = Field(description="Full name of the founder")
-    role: Optional[str] = Field(None, description="Role or position")
+    name: str = Field(description="创始人全名")
+    role: Optional[str] = Field(None, description="职位")
 
 class FoundersSchema(BaseModel):
-    founders: List[Founder] = Field(description="List of founders")
+    founders: List[Founder]
 
 result = app.agent(
-    prompt="Find the founders of Firecrawl",
+    prompt="查找 Firecrawl 的创始人",
     schema=FoundersSchema
 )
-
 print(result.data)
 ```
-```json
-{
-  "founders": [
-    {"name": "Eric Ciarla", "role": "Co-founder"},
-    {"name": "Nicolas Camara", "role": "Co-founder"},
-    {"name": "Caleb Peffer", "role": "Co-founder"}
-  ]
-}
-```
 
-### Agent with URLs (Optional)
+### 模型选择
 
-Focus the agent on specific pages:
-```python
-result = app.agent(
-    urls=["https://docs.firecrawl.dev", "https://firecrawl.dev/pricing"],
-    prompt="Compare the features and pricing information"
-)
-```
-
-### Model Selection
-
-Choose between two models based on your needs:
-
-| Model | Cost | Best For |
-|-------|------|----------|
-| `spark-1-mini` (default) | 60% cheaper | Most tasks |
-| `spark-1-pro` | Standard | Complex research, critical extraction |
-```python
-result = app.agent(
-    prompt="Compare enterprise features across Firecrawl, Apify, and ScrapingBee",
-    model="spark-1-pro"
-)
-```
-
-**When to use Pro:**
-- Comparing data across multiple websites
-- Extracting from sites with complex navigation or auth
-- Research tasks where the agent needs to explore multiple paths
-- Critical data where accuracy is paramount
-
-Learn more about Spark models in our [Agent documentation](https://docs.firecrawl.dev/features/agent).
-
-### Using Firecrawl with AI agents
-
-Install the Firecrawl skill to let AI agents like Claude Code, Codex, and OpenCode use Firecrawl automatically:
-```bash
-npx skills add firecrawl/cli
-```
-
-Restart your agent after installing. See the [Skill + CLI docs](https://docs.firecrawl.dev/sdks/cli) for full setup.
+| 模型 | 成本 | 适用场景 |
+|------|------|----------|
+| `spark-1-mini` (默认) | 节省 60% | 大多数任务 |
+| `spark-1-pro` | 标准 | 复杂研究、关键提取 |
 
 ---
 
-## Crawling
+## Crawl
 
-Crawl an entire website and get content from all pages.
+爬取整个网站获取所有页面内容。
+
 ```bash
 curl -X POST 'https://api.firecrawl.dev/v2/crawl' \
   -H 'Authorization: Bearer fc-YOUR_API_KEY' \
@@ -475,48 +310,23 @@ curl -X POST 'https://api.firecrawl.dev/v2/crawl' \
   -d '{
     "url": "https://docs.firecrawl.dev",
     "limit": 100,
-    "scrapeOptions": {
-      "formats": ["markdown"]
-    }
+    "scrapeOptions": {"formats": ["markdown"]}
   }'
 ```
 
-Returns a job ID:
-```json
-{
-  "success": true,
-  "id": "123-456-789",
-  "url": "https://api.firecrawl.dev/v2/crawl/123-456-789"
-}
-```
+### 检查爬取状态
 
-### Check Crawl Status
 ```bash
 curl -X GET 'https://api.firecrawl.dev/v2/crawl/123-456-789' \
   -H 'Authorization: Bearer fc-YOUR_API_KEY'
 ```
-```json
-{
-  "status": "completed",
-  "total": 50,
-  "completed": 50,
-  "creditsUsed": 50,
-  "data": [
-    {
-      "markdown": "# Page Title\n\nContent...",
-      "metadata": {"title": "Page Title", "sourceURL": "https://..."}
-    }
-  ]
-}
-```
-
-**Note:** The [SDKs](#sdks) handle polling automatically for a better developer experience.
 
 ---
 
 ## Map
 
-Discover all URLs on a website instantly.
+即时发现网站上的所有 URL。
+
 ```bash
 curl -X POST 'https://api.firecrawl.dev/v2/map' \
   -H 'Authorization: Bearer fc-YOUR_API_KEY' \
@@ -524,213 +334,141 @@ curl -X POST 'https://api.firecrawl.dev/v2/map' \
   -d '{"url": "https://firecrawl.dev"}'
 ```
 
-Response:
-```json
-{
-  "success": true,
-  "links": [
-    {"url": "https://firecrawl.dev", "title": "Firecrawl", "description": "Turn websites into LLM-ready data"},
-    {"url": "https://firecrawl.dev/pricing", "title": "Pricing", "description": "Firecrawl pricing plans"},
-    {"url": "https://firecrawl.dev/blog", "title": "Blog", "description": "Firecrawl blog"}
-  ]
-}
-```
-
-### Map with Search
-
-Find specific URLs within a site:
-```python
-from firecrawl import Firecrawl
-
-app = Firecrawl(api_key="fc-YOUR_API_KEY")
-
-result = app.map("https://firecrawl.dev", search="pricing")
-# Returns URLs ordered by relevance to "pricing"
-```
-
----
-
-## Batch Scraping
-
-Scrape multiple URLs at once:
-```python
-from firecrawl import Firecrawl
-
-app = Firecrawl(api_key="fc-YOUR_API_KEY")
-
-job = app.batch_scrape([
-    "https://firecrawl.dev",
-    "https://docs.firecrawl.dev",
-    "https://firecrawl.dev/pricing"
-], formats=["markdown"])
-
-for doc in job.data:
-    print(doc.metadata.source_url)
-```
-
 ---
 
 ## SDKs
 
-Our SDKs provide a convenient way to interact with all Firecrawl features and automatically handle polling for async operations like crawling and batch scraping.
-
 ### Python
 
-Install the SDK:
 ```bash
 pip install firecrawl-py
 ```
+
 ```python
 from firecrawl import Firecrawl
 
 app = Firecrawl(api_key="fc-YOUR_API_KEY")
 
-# Scrape a single URL
+# 抓取
 doc = app.scrape("https://firecrawl.dev", formats=["markdown"])
 print(doc.markdown)
 
-# Use the Agent for autonomous data gathering
-result = app.agent(prompt="Find the founders of Stripe")
+# Agent
+result = app.agent(prompt="查找 Stripe 的创始人")
 print(result.data)
 
-# Crawl a website (automatically waits for completion)
+# 爬取
 docs = app.crawl("https://docs.firecrawl.dev", limit=50)
 for doc in docs.data:
-    print(doc.metadata.source_url, doc.markdown[:100])
+    print(doc.metadata.source_url)
 
-# Search the web
-results = app.search("best web scraping tools 2024", limit=10)
-print(results)
+# 搜索
+results = app.search("web scraping tools 2024", limit=10)
 ```
 
 ### Node.js
 
-Install the SDK:
 ```bash
 npm install @mendable/firecrawl-js
 ```
+
 ```javascript
 import Firecrawl from '@mendable/firecrawl-js';
 
 const app = new Firecrawl({ apiKey: 'fc-YOUR_API_KEY' });
 
-// Scrape a single URL
+// 抓取
 const doc = await app.scrape('https://firecrawl.dev', { formats: ['markdown'] });
 console.log(doc.markdown);
 
-// Use the Agent for autonomous data gathering
-const result = await app.agent({ prompt: 'Find the founders of Stripe' });
+// Agent
+const result = await app.agent({ prompt: '查找 Stripe 的创始人' });
 console.log(result.data);
 
-// Crawl a website (automatically waits for completion)
+// 爬取
 const docs = await app.crawl('https://docs.firecrawl.dev', { limit: 50 });
-docs.data.forEach(doc => {
-    console.log(doc.metadata.sourceURL, doc.markdown.substring(0, 100));
-});
 
-// Search the web
-const results = await app.search('best web scraping tools 2024', { limit: 10 });
-results.data.web.forEach(result => {
-    console.log(`${result.title}: ${result.url}`);
-});
+// 搜索
+const results = await app.search('web scraping tools 2024', { limit: 10 });
 ```
 
-### Java
-
-Add the dependency ([Gradle/Maven](https://docs.firecrawl.dev/sdks/java#installation)):
-```groovy
-repositories {
-    mavenCentral()
-    maven { url 'https://jitpack.io' }
-}
-
-dependencies {
-    implementation 'com.github.firecrawl:firecrawl-java-sdk:2.0'
-}
-```
-```java
-import dev.firecrawl.client.FirecrawlClient;
-import dev.firecrawl.model.*;
-
-FirecrawlClient client = new FirecrawlClient(
-    System.getenv("FIRECRAWL_API_KEY"), null, null
-);
-
-// Scrape a single URL
-ScrapeParams scrapeParams = new ScrapeParams();
-scrapeParams.setFormats(new String[]{"markdown"});
-FirecrawlDocument doc = client.scrapeURL("https://firecrawl.dev", scrapeParams);
-System.out.println(doc.getMarkdown());
-
-// Use the Agent for autonomous data gathering
-AgentParams agentParams = new AgentParams("Find the founders of Stripe");
-AgentResponse start = client.createAgent(agentParams);
-AgentStatusResponse result = client.getAgentStatus(start.getId());
-System.out.println(result.getData());
-
-// Crawl a website (polls until completion)
-CrawlParams crawlParams = new CrawlParams();
-crawlParams.setLimit(50);
-CrawlStatusResponse job = client.crawlURL("https://docs.firecrawl.dev", crawlParams, null, 10);
-for (FirecrawlDocument page : job.getData()) {
-    System.out.println(page.getMetadata().get("sourceURL"));
-}
-
-// Search the web
-SearchParams searchParams = new SearchParams("best web scraping tools 2024");
-searchParams.setLimit(10);
-SearchResponse results = client.search(searchParams);
-for (SearchResult r : results.getResults()) {
-    System.out.println(r.getTitle() + ": " + r.getUrl());
-}
-```
-
-### Community SDKs
+### 社区 SDK
 
 - [Go SDK](https://github.com/mendableai/firecrawl-go)
 - [Rust SDK](https://docs.firecrawl.dev/sdks/rust)
 
 ---
 
-## Integrations
+## 架构
 
-**Agents & AI Tools**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  API Layer (Express + WebSocket)                                │
+│  V0 (deprecated) | V1 | V2 (current)                            │
+└───────────────────────────────┬─────────────────────────────────┘
+                                │
+┌───────────────────────────────▼─────────────────────────────────┐
+│  Service Layer: Scraper | Crawler | Extract | Search            │
+└───────────────────────────────┬─────────────────────────────────┘
+                                │
+┌───────────────────────────────▼─────────────────────────────────┐
+│  Worker Layer: NuQ Workers (xN) | Extract/Index Workers         │
+└───────────────────────────────┬─────────────────────────────────┘
+                                │
+┌───────────────────────────────▼─────────────────────────────────┐
+│  Data Layer: PostgreSQL (NuQ) | Redis | RabbitMQ | Supabase     │
+│  + SearXNG (搜索服务)                                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 服务列表
+
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| api | 3002 | Firecrawl API |
+| searxng | 8080 (内部) | SearXNG 搜索服务 |
+| redis | 6379 | 缓存/队列 |
+| rabbitmq | 5672, 15672 | 消息队列 |
+| nuq-postgres | 5432 | PostgreSQL 数据库 |
+| playwright-service | 3000 | 浏览器渲染服务 |
+
+---
+
+## 资源
+
+- [API 文档](https://docs.firecrawl.dev)
+- [API 参考](https://docs.firecrawl.dev/api-reference/introduction)
+- [Playground](https://firecrawl.dev/playground)
+- [更新日志](https://firecrawl.dev/changelog)
+
+---
+
+## 集成
+
+**AI Agent 工具**
 - [Firecrawl Skill](https://docs.firecrawl.dev/sdks/cli)
 - [Firecrawl MCP](https://github.com/mendableai/firecrawl-mcp-server)
 
-**Platforms**
+**平台**
 - [Lovable](https://docs.lovable.dev/integrations/firecrawl)
 - [Zapier](https://zapier.com/apps/firecrawl/integrations)
 - [n8n](https://n8n.io/integrations/firecrawl/)
 
-[View all integrations →](https://www.firecrawl.dev/integrations)
-
-**Missing your favorite tool?** [Open an issue](https://github.com/mendableai/firecrawl/issues) and let us know!
+[查看所有集成 →](https://www.firecrawl.dev/integrations)
 
 ---
 
-## Resources
+## 开源 vs 云服务
 
-- [Documentation](https://docs.firecrawl.dev)
-- [API Reference](https://docs.firecrawl.dev/api-reference/introduction)
-- [Playground](https://firecrawl.dev/playground)
-- [Changelog](https://firecrawl.dev/changelog)
-
----
-
-## Open Source vs Cloud
-
-Firecrawl is open source under the AGPL-3.0 license. The cloud version at [firecrawl.dev](https://firecrawl.dev) includes additional features:
+Firecrawl 采用 AGPL-3.0 开源协议。云版本 [firecrawl.dev](https://firecrawl.dev) 提供额外功能：
 
 ![Open Source vs Cloud](https://raw.githubusercontent.com/firecrawl/firecrawl/main/img/open-source-cloud-comparison.png)
 
-To run locally, see the [Contributing Guide](https://github.com/firecrawl/firecrawl/blob/main/CONTRIBUTING.md). To self-host, see [Self-Hosting Guide](https://docs.firecrawl.dev/contributing/self-host).
-
 ---
 
-## Contributing
+## 贡献
 
-We love contributions! Please read our [Contributing Guide](https://github.com/firecrawl/firecrawl/blob/main/CONTRIBUTING.md) before submitting a pull request.
+欢迎贡献！请阅读 [Contributing Guide](https://github.com/firecrawl/firecrawl/blob/main/CONTRIBUTING.md)。
 
 ### Contributors
 
@@ -742,14 +480,14 @@ We love contributions! Please read our [Contributing Guide](https://github.com/f
 
 ## License
 
-This project is primarily licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). The SDKs and some UI components are licensed under the MIT License. See the LICENSE files in specific directories for details.
+本项目主要采用 GNU Affero General Public License v3.0 (AGPL-3.0) 许可。SDK 和部分 UI 组件采用 MIT 许可。详见各目录的 LICENSE 文件。
 
 ---
 
-**It is the sole responsibility of end users to respect websites' policies when scraping.** Users are advised to adhere to applicable privacy policies and terms of use. By default, Firecrawl respects robots.txt directives. By using Firecrawl, you agree to comply with these conditions.
+**用户有责任尊重网站政策进行爬取。** 默认情况下，Firecrawl 遵守 robots.txt 指令。
 
 <p align="right" style="font-size: 14px; color: #555; margin-top: 20px;">
   <a href="#readme-top" style="text-decoration: none; color: #007bff; font-weight: bold;">
-    ↑ Back to Top ↑
+    ↑ 返回顶部 ↑
   </a>
 </p>
