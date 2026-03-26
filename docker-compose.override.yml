@@ -7,7 +7,7 @@ services:
     image: searxng/searxng:latest
     container_name: firecrawl-searxng-1
     environment:
-      BASE_URL: http://localhost:8888/
+      BASE_URL: http://searxng:8080/
       INSTANCE_NAME: SearXNG-Firecrawl
     volumes:
       - ./searxng:/etc/searxng:rw
@@ -19,20 +19,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "5m"
-        max-file: "2"
-        compress: "true"
-    restart: unless-stopped
-
-  searxng-redis:
-    image: redis:alpine
-    container_name: firecrawl-searxng-redis-1
-    command: redis-server --save "" --appendonly no
-    networks:
-      - backend
     logging:
       driver: "json-file"
       options:

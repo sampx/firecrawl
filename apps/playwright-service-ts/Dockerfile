@@ -1,21 +1,16 @@
-FROM node:18-slim
+FROM ghcr.io/firecrawl/playwright-service:latest
 
 WORKDIR /usr/src/app
-COPY package*.json ./
-RUN npm install
 
-COPY . .
-
-ENV PLAYWRIGHT_BROWSERS_PATH=/usr/local/share/playwright
-
-# Install Playwright dependencies
-RUN npx playwright install chromium --with-deps
-
+COPY api.ts ./api.ts
+COPY helpers ./helpers
+COPY tsconfig.json ./tsconfig.json
+COPY package.json ./package.json
 RUN npm run build
 
-ARG PORT
+ARG PORT=3000
 ENV PORT=${PORT}
 
 EXPOSE ${PORT}
 
-CMD [ "npm", "start" ]
+CMD ["npm", "start"]

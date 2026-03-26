@@ -33,7 +33,7 @@ x-common-env: &common-env
   POSTGRES_HOST: ${POSTGRES_HOST:-nuq-postgres}
   POSTGRES_PORT: ${POSTGRES_PORT:-5432}
   USE_DB_AUTHENTICATION: ${USE_DB_AUTHENTICATION:-false}
-  NUM_WORKERS_PER_QUEUE: ${NUM_WORKERS_PER_QUEUE:-8}
+  NUQ_WORKER_COUNT: ${NUQ_WORKER_COUNT:-8}
   CRAWL_CONCURRENT_REQUESTS: ${CRAWL_CONCURRENT_REQUESTS:-10}
   MAX_CONCURRENT_JOBS: ${MAX_CONCURRENT_JOBS:-5}
   BROWSER_POOL_SIZE: ${BROWSER_POOL_SIZE:-5}
@@ -62,8 +62,8 @@ services:
   playwright-service:
     # NOTE: If you don't want to build the service locally,
     # comment out the build: statement and uncomment the image: statement
-    image: ghcr.io/firecrawl/playwright-service:latest
-    # build: apps/playwright-service-ts
+    # image: ghcr.io/firecrawl/playwright-service:latest
+    build: apps/playwright-service-ts
     environment:
       PORT: 3000
       PROXY_SERVER: ${PROXY_SERVER}
