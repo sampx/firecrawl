@@ -142,12 +142,17 @@ export type ActionOption =
   | ExecuteJavascriptAction
   | PDFAction;
 
+export interface CleanContentOptions {
+  prompt?: string;
+}
+
 export interface ScrapeOptions {
   formats?: FormatOption[];
   headers?: Record<string, string>;
   includeTags?: string[];
   excludeTags?: string[];
   onlyMainContent?: boolean;
+  onlyCleanContent?: boolean | CleanContentOptions;
   timeout?: number;
   waitFor?: number;
   mobile?: boolean;

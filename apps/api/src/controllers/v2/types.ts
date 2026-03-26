@@ -553,7 +553,14 @@ const baseScrapeOptions = z.strictObject({
     .transform(tags => tags.map(transformIframeSelector))
     .optional(),
   onlyMainContent: z.boolean().prefault(true),
-  onlyCleanContent: z.boolean().prefault(false),
+  onlyCleanContent: z
+    .union([
+      z.boolean(),
+      z.strictObject({
+        prompt: z.string().max(10000).optional(),
+      }),
+    ])
+    .prefault(false),
   timeout: z.int().positive().min(1000).optional(),
   waitFor: z.int().nonnegative().max(60000).prefault(0),
   mobile: z.boolean().prefault(false),

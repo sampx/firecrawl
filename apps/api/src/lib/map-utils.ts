@@ -121,12 +121,9 @@ export async function getMapResults({
 
   const resolvedUrl = await resolveRedirects(url, abort);
 
-  // If the resolved URL is on a different domain, replace the hostname
-  if (!isSameDomain(url, resolvedUrl)) {
-    const urlObj = new URL(url);
-    urlObj.hostname = new URL(resolvedUrl).hostname;
-
-    url = urlObj.toString();
+  // Use the fully resolved URL when it differs from original
+  if (url !== resolvedUrl) {
+    url = resolvedUrl;
   }
 
   const id = providedId ?? uuidv7();
