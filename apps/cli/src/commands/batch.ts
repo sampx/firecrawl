@@ -9,12 +9,13 @@ export const batchCommand = new Command('batch')
   .description('Start a batch scrape job')
   .argument('<file>', 'File containing URLs (one per line or JSON array)')
   .option('--wait', 'Wait for the batch scrape to complete')
+  .option('--poll-interval <seconds>', 'Poll interval in seconds (default: 2)', '2')
+  .option('--timeout <seconds>', 'Timeout in seconds (default: 120)', '120')
   .action(async (file, options, command) => {
     const globalOptions = command.parent.opts();
     const config: Config = {
       apiUrl: globalOptions.apiUrl,
       apiKey: globalOptions.apiKey,
-      format: globalOptions.format,
       verbose: globalOptions.verbose,
     };
 
@@ -33,11 +34,14 @@ export const batchCommand = new Command('batch')
 
       const client = getClient(config);
       if (options.wait) {
-        const response = await client.batchScrape(urls);
-        handleOutput(response, config, globalOptions.output);
+        const response = await client.batchScrape(urls, {
+          pollInterval: parseInt(options.pollInterval, 10),
+          timeout: parseInt(options.timeout, 10),
+        });
+        handleOutput(response, globalOptions.output);
       } else {
         const response = await client.startBatchScrape(urls);
-        handleOutput(response, config, globalOptions.output);
+        handleOutput(response, globalOptions.output);
       }
     } catch (error) {
       handleError(error, config.verbose);

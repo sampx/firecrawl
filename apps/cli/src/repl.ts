@@ -42,10 +42,7 @@ export function startREPL(config: Config) {
       console.log('  extract <urls...> --prompt <text>');
       console.log('  batch <file>');
       console.log('  batch-status <id>');
-      console.log('  agent --prompt <text>');
-      console.log('  deep-research <query>');
       console.log('  llmstxt <url>');
-      console.log('  usage');
       console.log('  exit');
       rl.prompt();
       return;
@@ -61,7 +58,6 @@ export function startREPL(config: Config) {
     const fullArgs = [cliPath, ...args];
     if (config.apiUrl) fullArgs.push('--api-url', config.apiUrl);
     if (config.apiKey) fullArgs.push('--api-key', config.apiKey);
-    if (config.format) fullArgs.push('--format', config.format);
 
     const child = spawn('node', fullArgs, { stdio: 'inherit' });
 

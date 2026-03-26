@@ -4,11 +4,11 @@ import { handleOutput } from '../utils/output.js';
 import { handleError } from '../utils/error.js';
 import { Config } from '../utils/config.js';
 
-export const batchStatusCommand = new Command('batch-status')
-  .description('Get the status of a batch scrape job')
-  .argument('<id>', 'Batch job ID')
-  .option('--wait', 'Wait for the batch scrape to complete')
-  .option('--poll-interval <seconds>', 'Poll interval in seconds (default: 2)', '2')
+export const extractStatusCommand = new Command('extract-status')
+  .description('Get the status of an extract job')
+  .argument('<id>', 'Extract job ID')
+  .option('--wait', 'Wait for the extraction to complete')
+  .option('--poll-interval <seconds>', 'Polling interval in seconds (default: 2)', '2')
   .option('--timeout <seconds>', 'Timeout in seconds (default: 120)', '120')
   .action(async (id, options, command) => {
     const globalOptions = command.parent.opts();
@@ -25,18 +25,18 @@ export const batchStatusCommand = new Command('batch-status')
 
       if (options.wait) {
         // Wait mode: poll until complete with progress display
-        console.log(`Waiting for batch job: ${id}`);
+        console.log(`Waiting for extract job: ${id}`);
         const startTime = Date.now();
         const deadline = startTime + timeout * 1000;
 
         while (Date.now() < deadline) {
-          const response = await client.getBatchScrapeStatus(id);
+          const response = await client.getExtractStatus(id);
           const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 
           if (response.status === 'completed') {
-            console.log(`\n✓ Batch completed in ${elapsed}s`);
-            if (response.completed !== undefined && response.total !== undefined) {
-              console.log(`  Pages: ${response.completed}/${response.total}`);
+            console.log(`\n✓ Extraction completed in ${elapsed}s`);
+            if (response.tokensUsed) {
+              console.log(`  Tokens used: ${response.tokensUsed}`);
             }
             if (response.creditsUsed) {
               console.log(`  Credits used: ${response.creditsUsed}`);
@@ -46,35 +46,32 @@ export const batchStatusCommand = new Command('batch-status')
           }
 
           if (response.status === 'failed' || response.status === 'cancelled') {
-            console.log(`\n✗ Batch ${response.status} after ${elapsed}s`);
+            console.log(`\n✗ Extraction ${response.status} after ${elapsed}s`);
             handleOutput(response, globalOptions.output);
             return;
           }
 
           // Show progress
-          const progress = response.completed !== undefined && response.total !== undefined
-            ? ` (${response.completed}/${response.total})`
-            : '';
-          process.stdout.write(`\r  Status: ${response.status}${progress} (${elapsed}s elapsed)`);
+          process.stdout.write(`\r  Status: ${response.status} (${elapsed}s elapsed)`);
           await new Promise((r) => setTimeout(r, pollInterval * 1000));
         }
 
         console.log(`\n✗ Timeout after ${timeout}s`);
-        const finalResponse = await client.getBatchScrapeStatus(id);
+        const finalResponse = await client.getExtractStatus(id);
         handleOutput(finalResponse, globalOptions.output);
       } else {
         // Just get status once
-        const response = await client.getBatchScrapeStatus(id);
-
-        console.log(`Batch job: ${id}`);
+        const response = await client.getExtractStatus(id);
+        
+        console.log(`Extract job: ${id}`);
         console.log(`  Status: ${response.status}`);
-        if (response.completed !== undefined && response.total !== undefined) {
-          console.log(`  Pages: ${response.completed}/${response.total}`);
+        if (response.tokensUsed) {
+          console.log(`  Tokens used: ${response.tokensUsed}`);
         }
         if (response.creditsUsed) {
           console.log(`  Credits used: ${response.creditsUsed}`);
         }
-
+        
         handleOutput(response, globalOptions.output);
       }
     } catch (error) {

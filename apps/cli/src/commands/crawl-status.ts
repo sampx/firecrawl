@@ -12,14 +12,13 @@ export const crawlStatusCommand = new Command('crawl-status')
     const config: Config = {
       apiUrl: globalOptions.apiUrl,
       apiKey: globalOptions.apiKey,
-      format: globalOptions.format,
       verbose: globalOptions.verbose,
     };
 
     try {
       const client = getClient(config);
       const response = await client.getCrawlStatus(id);
-      handleOutput(response, config, globalOptions.output);
+      handleOutput(response, globalOptions.output);
     } catch (error) {
       handleError(error, config.verbose);
     }
