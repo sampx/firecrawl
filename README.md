@@ -109,12 +109,6 @@ fc-cli usage
 # 结构化提取
 fc-cli extract https://example.com/product --prompt "提取产品价格和名称"
 
-# Agent 自动化
-fc-cli agent --prompt "查找最新的 AI 新闻"
-
-# 深度研究
-fc-cli deep-research "网络爬虫市场分析"
-
 # 生成 LLMs.txt
 fc-cli llmstxt https://example.com
 ```

@@ -1,4 +1,7 @@
-# AGENTS.md - Firecrawl Development Guide
+# AGENTS.md — Firecrawl Development Guide
+
+> **本地部署文档**: `docs/DEPLOYMENT.md`
+> **架构设计文档**: `docs/ARCHITECTURE.md`
 
 This document provides essential information for AI coding agents working on the Firecrawl codebase.
 

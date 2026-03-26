@@ -1,0 +1,2 @@
+Extract only the main article content. Return the article title and its full body text in markdown format.
+Keep all images (![alt](url) syntax) and inline code blocks. Filter out navigation menus, headers, footers, sidebars, ads, related posts, comments, and social share links.
