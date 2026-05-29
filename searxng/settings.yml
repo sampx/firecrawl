@@ -1,14 +1,22 @@
-use_default_settings: true
+use_default_settings:
+  engines:
+    remove:
+      - ahmia
+      - torch
+      - radio browser
+      - wikidata
 
 general:
   instance_name: "SearXNG Local"
   debug: false
-  enable_metrics: true
+  enable_metrics: false
+  privacypolicy_url: false
+  enable_get_requests: true
 
 search:
   safe_search: 0
-  autocomplete: ""
-  default_lang: "zh-CN"
+  autocomplete: "duckduckgo"
+  default_lang: "en"
   formats:
     - html
     - json
@@ -16,21 +24,35 @@ search:
 server:
   port: 8080
   bind_address: "0.0.0.0"
-  secret_key: "change_me_to_a_random_string"
+  secret_key: "64ada36a2e702035a85f532780619b5eb7a5c4146db756be6ba4ff7bd579e9b4"
   limiter: false
   image_proxy: true
   http_protocol_version: "1.1"
+  method: "GET"
+  trusted_proxies:
+    - 0.0.0.0/0
 
 outgoing:
-  request_timeout: 10.0
-  max_request_timeout: 15.0
+  request_timeout: 15.0
+  max_request_timeout: 20.0
   pool_connections: 100
   pool_maxsize: 20
+  proxies:
+    http: http://macmini.local:7890
+    https: http://macmini.local:7890
+  source_ips:
+    - 0.0.0.0
 
 engines:
-  - name: google
-    engine: google
-    shortcut: g
+  # 主要搜索引擎 (免费可用)
+  - name: startpage
+    engine: startpage
+    shortcut: sp
+    disabled: false
+
+  - name: brave
+    engine: brave
+    shortcut: br
     disabled: false
 
   - name: bing
@@ -57,3 +79,9 @@ engines:
     engine: github
     shortcut: gh
     disabled: false
+
+  # Google 403 反爬问题，建议用 startpage 替代
+  - name: google
+    engine: google
+    shortcut: g
+    disabled: true

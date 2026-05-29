@@ -9,6 +9,10 @@ services:
     environment:
       BASE_URL: http://searxng:8080/
       INSTANCE_NAME: SearXNG-Firecrawl
+      # 代理配置 (用于访问被屏蔽的搜索引擎)
+      HTTP_PROXY: ${PROXY_SERVER:-}
+      HTTPS_PROXY: ${PROXY_SERVER:-}
+      NO_PROXY: localhost,127.0.0.1,searxng,api,redis,rabbitmq,playwright-service,nuq-postgres
     volumes:
       - ./searxng:/etc/searxng:rw
     networks:

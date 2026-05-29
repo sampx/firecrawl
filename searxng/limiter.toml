@@ -1,0 +1,6 @@
+# SearXNG Limiter Configuration
+# https://github.com/searxng/searxng/blob/master/searx/limiter.toml
+
+[botdetection.ip_limit]
+# Disable link_token for internal/self-hosted use
+link_token = false
