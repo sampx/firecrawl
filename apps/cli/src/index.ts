@@ -7,8 +7,6 @@ import { crawlCommand } from './commands/crawl.js';
 import { crawlStatusCommand } from './commands/crawl-status.js';
 import { batchCommand } from './commands/batch.js';
 import { batchStatusCommand } from './commands/batch-status.js';
-import { extractCommand } from './commands/extract.js';
-import { extractStatusCommand } from './commands/extract-status.js';
 import { llmstxtCommand } from './commands/llmstxt.js';
 import fs from 'fs';
 
@@ -36,8 +34,6 @@ program.addCommand(crawlCommand);
 program.addCommand(crawlStatusCommand);
 program.addCommand(batchCommand);
 program.addCommand(batchStatusCommand);
-program.addCommand(extractCommand);
-program.addCommand(extractStatusCommand);
 program.addCommand(llmstxtCommand);
 
 program.action(async (options) => {

@@ -39,7 +39,6 @@ export function startREPL(config: Config) {
       console.log('  crawl <url>');
       console.log('  crawl-status <id>');
       console.log('  map <url>');
-      console.log('  extract <urls...> --prompt <text>');
       console.log('  batch <file>');
       console.log('  batch-status <id>');
       console.log('  llmstxt <url>');
