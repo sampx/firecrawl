@@ -1,205 +1,69 @@
-# AGENTS.md — Firecrawl Development Guide
+---
+name: Firecrawl AGENT RULES
+description: Self-hosted web data collection backend for fc-cli and fc-local
+---
 
-> **本地部署文档**: `docs/DEPLOYMENT.md`
-> **架构设计文档**: `docs/ARCHITECTURE.md`
+# Agent Development Rules
 
-This document provides essential information for AI coding agents working on the Firecrawl codebase.
+## 1. Canonical References
 
-## System Architecture
+Canonical references:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  API Layer (Express + WebSocket)                                │
-│  V0 (deprecated) | V1 | V2 (current)                            │
-└───────────────────────────────┬─────────────────────────────────┘
-                                │
-┌───────────────────────────────▼─────────────────────────────────┐
-│  Service Layer: Scraper | Crawler | Extract | Search            │
-└───────────────────────────────┬─────────────────────────────────┘
-                                │
-┌───────────────────────────────▼─────────────────────────────────┐
-│  Worker Layer: NuQ Workers (xN) | Extract/Index Workers         │
-└───────────────────────────────┬─────────────────────────────────┘
-                                │
-┌───────────────────────────────▼─────────────────────────────────┐
-│  Data Layer: PostgreSQL (NuQ) | Redis | RabbitMQ | Supabase     │
-└─────────────────────────────────────────────────────────────────┘
-```
+- DESIGN: `docs/DESIGN.md`
+- Referral Docs: `docs/ARCHITECTURE.md`, `docs/DEPLOYMENT.md`, `apps/api/AGENTS.md`, `apps/cli/AGENTS.md`
 
-## Project Structure
+## 2. Architecture and Directories
 
-| Package | Path | Description |
-|---------|------|-------------|
-| **api** | `apps/api` | Main API and worker code |
-| **js-sdk** | `apps/js-sdk` | JavaScript SDK |
-| **python-sdk** | `apps/python-sdk` | Python SDK |
-| **rust-sdk** | `apps/rust-sdk` | Rust SDK |
-| **cli** | `apps/cli` | Command-line tool |
-| **playwright-service-ts** | `apps/playwright-service-ts` | Browser rendering service |
+Runtime chain: `fc-local / user → fc-cli / HTTP API → apps/api → workers / Playwright / SearXNG → Markdown / JSON output`.
 
-## Build and Test Commands
+| Directory | Responsibility |
+|---|---|
+| `apps/api/` | Firecrawl API service, workers, and backend logic for scrape, crawl, search, and extract |
+| `apps/cli/` | `fc-cli` command-line wrapper that calls the self-hosted API and formats output |
+| `apps/playwright-service-ts/` | Browser rendering microservice |
+| `my-fc` | Root service management script for Docker Compose lifecycle operations |
+| `scripts/` | Service start/stop, logs, build, and helper scripts |
+| `searxng/` | Self-hosted SearXNG search configuration |
+| `docker-compose.yaml` | Self-hosted service orchestration |
+| `docs/` | Project design, architecture, and deployment documents |
 
-```bash
-# Development
-pnpm --filter firecrawl-scraper-js dev
+Deploy: `external/tools/bin/` exposes scripts to the system `PATH` through symlinks.
 
-# Build
-pnpm --filter firecrawl-scraper-js build
+## 3. Development Commands (build format test)
 
-# Test (IMPORTANT: use harness for E2E tests)
-pnpm harness jest src/__tests__/snips/v2/scrape.test.ts
+| Scenario | Command | When |
+|---|---|---|
+| Check services | `./my-fc status` | Check self-hosted service status |
+| Health check | `./my-fc health` | After changing service orchestration, API, or CLI integration |
+| View logs | `./my-fc logs <service> [lines]` | Diagnose runtime issues |
+| API dev | `pnpm dev` | Workdir: `apps/api/` |
+| API build | `pnpm build` | Workdir: `apps/api/`, after API changes |
+| API format | `pnpm format` | Workdir: `apps/api/`, before commit |
+| API unused-code check | `pnpm knip` | Workdir: `apps/api/`, after cleanup or refactoring |
+| API snips tests | `pnpm test:snips` | Workdir: `apps/api/`, after scrape/crawl changes |
+| API targeted test | `pnpm harness jest <test-file>` | Workdir: `apps/api/`, verify a single E2E/snips test |
+| CLI dev | `pnpm dev` | Workdir: `apps/cli/` |
+| CLI build | `pnpm build` | Workdir: `apps/cli/`, after CLI changes |
+| CLI test | `pnpm test` | Workdir: `apps/cli/`, after CLI changes |
 
-# Code quality
-pnpm --filter firecrawl-scraper-js format  # Prettier
-pnpm --filter firecrawl-scraper-js knip    # Check unused code
-```
+## 4. Implementation Rules
 
-## Test Guidelines
+- Keep the upstream fork traceable; do not perform broad rewrites or unrelated formatting unless the task explicitly requires it.
+- Follow `apps/api/AGENTS.md` when editing `apps/api/`; follow `apps/cli/AGENTS.md` when editing `apps/cli/`.
+- CLI only parses arguments, calls the API, and formats output; business processing, scraping strategy, and data extraction logic belong in the API layer.
+- New or changed API request bodies must use Zod schemas for runtime validation.
+- API errors must use the `TransportableError` family; avoid throwing bare `Error`.
+- Use the project logger for runtime information; do not use `console.log` for business logs.
+- Do not log or output API keys, environment variable values, request headers, or other sensitive data.
+- After changing Docker Compose, `my-fc`, `scripts/`, or `searxng/`, verify with `./my-fc status` or `./my-fc health`.
 
-- **E2E tests (snips)**: `apps/api/src/__tests__/snips/` - ALWAYS PREFERRED
-- **Unit tests**: `apps/api/src/**/__tests__/`
-- Use `scrapeTimeout` for all scrape tests
-- Gate tests with `describeIf(!TEST_SELF_HOST)` and `itIf(HAS_AI)`
+## 5. Testing
 
-## Code Style
+- Follow TDD: write a failing test first, then implement code to make it pass.
+- Scrape, crawl, search, and extract changes should prefer E2E/snips tests under `apps/api/src/__tests__/snips/`.
+- Run a single API test with `pnpm harness jest <test-file>` so dependent services are orchestrated by the harness.
+- All scraping tests must use `scrapeTimeout` to avoid unstable timeouts.
+- Use existing `describeIf` / `itIf` patterns for tests gated by environment capabilities.
+- CLI changes must at least run the `apps/cli` build and test; use `./my-fc health` or a manual smoke test when real API calls are involved.
 
-### Formatting (Prettier)
-
-- Trailing commas: `all`, Tab width: 2, Semicolons: required
-- Double quotes, Print width: 80
-
-### Imports Order
-
-1. Node.js built-ins
-2. Third-party packages
-3. Internal modules (relative paths)
-
-### TypeScript
-
-- Target: ES2022, Module: NodeNext with ESM
-- Use Zod for runtime validation
-
-### Naming
-
-- Files: `kebab-case.ts`, Classes: `PascalCase`
-- Functions/variables: `camelCase`, Constants: `UPPER_SNAKE_CASE`
-
-### Error Handling
-
-```typescript
-import { TransportableError, ScrapeJobTimeoutError, UnknownError } from "../../lib/error";
-throw new ScrapeJobTimeoutError("message");
-```
-
-### Logging
-
-```typescript
-import { logger } from "../../lib/logger";
-logger.info("message", { module: "name", teamId, url });
-```
-
-## API Directory Structure
-
-```
-apps/api/src/
-├── config.ts, index.ts, harness.ts, types.ts
-├── controllers/v1/, v2/          # Request handlers by API version
-├── routes/v1.ts, v2.ts           # Route definitions
-├── services/                     # Business logic
-│   ├── supabase.ts, redis.ts     # Database services
-│   ├── queue-service.ts          # BullMQ
-│   └── worker/                   # NuQ Worker system
-├── scraper/scrapeURL/            # Core scraping engine
-│   ├── engines/                  # fetch, playwright, fire-engine, pdf
-│   ├── transformers/             # markdown, extract
-│   └── postprocessors/
-├── lib/                          # Shared libraries
-│   ├── logger.ts, error.ts       # Logging and errors
-│   └── extract/, deep-research/
-└── __tests__/snips/              # E2E tests
-```
-
-## Core Architecture
-
-### Scraping Engine
-
-Multi-engine fallback: `fire-engine > playwright > fetch`
-
-```
-Request → Feature Flags → Robots.txt → Engine Fallback Loop → Transformers → Document
-```
-
-### Queue System
-
-| Queue | Backend | Usage |
-|-------|---------|-------|
-| **NuQ** | PostgreSQL + RabbitMQ | scrape/crawl jobs (high performance) |
-| **BullMQ** | Redis | billing, deep research, precrawl |
-
-### Worker Types
-
-| Worker | Purpose |
-|--------|---------|
-| NuQ Workers | Process scrape/crawl jobs (scalable) |
-| Extract Worker | Extraction jobs |
-| Index Worker | Search indexing (optional) |
-
-### Authentication
-
-```
-Bearer Token → Redis Cache (ACUC) → Supabase RPC → Rate Limiter → ACUC response
-```
-
-**ACUC (Auth Credit Usage Chunk)**: `{ api_key, team_id, rate_limits, remaining_credits, concurrency, flags }`
-
-### Middleware Chain
-
-```
-authMiddleware → countryCheck → checkCreditsMiddleware → blocklistMiddleware → controller
-```
-
-### V2 API Endpoints
-
-| Endpoint | Description |
-|----------|-------------|
-| `POST /v2/scrape` | Single page scrape |
-| `POST /v2/crawl` | Website crawl |
-| `GET /v2/crawl/:jobId` | Crawl status (REST/WebSocket) |
-| `POST /v2/search` | Search + scrape |
-| `POST /v2/extract` | Structured extraction |
-| `POST /v2/agent` | FIRE-1 Agent |
-
-### Data Storage
-
-| Storage | Purpose |
-|---------|---------|
-| Supabase | Users, teams, API keys, billing |
-| NuQ PostgreSQL | Job queue state, crawl progress |
-| Redis | ACUC cache, rate limiter, locks |
-| RabbitMQ | NuQ message broker (optional) |
-
-## Key Environment Variables
-
-| Category | Variables |
-|----------|-----------|
-| Database | `POSTGRES_*`, `REDIS_URL`, `NUQ_DATABASE_URL` |
-| Auth | `SUPABASE_URL`, `SUPABASE_SERVICE_TOKEN` |
-| AI | `OPENAI_API_KEY`, `OLLAMA_BASE_URL` |
-| Services | `FIRE_ENGINE_BETA_URL`, `PLAYWRIGHT_MICROSERVICE_URL`, `SEARXNG_ENDPOINT` |
-
-## Development Workflow
-
-1. Write tests first (TDD)
-2. Implement feature
-3. Run tests: `pnpm harness jest <test-file>`
-4. Format: `pnpm --filter firecrawl-scraper-js format`
-5. Commit with conventional commits: `feat:`, `fix:`, `refactor:`, `test:`
-
-## Important Notes
-
-- Never commit secrets
-- Use `scrapeTimeout` in tests
-- Prefer E2E (snips) over unit tests
-- Use Zod schemas for validation
-- Use custom error classes from `src/lib/error.ts`
-- Run tests via `pnpm harness`
+## 6. User-Supplied Rules
