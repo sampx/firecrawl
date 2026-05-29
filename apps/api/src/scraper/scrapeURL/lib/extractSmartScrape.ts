@@ -381,7 +381,45 @@ export async function extractData({
     // console.log("failed during extractSmartScrape.ts:generateCompletions", error);
   }
 
+  // Debug: log what extract actually contains
+  logger.info("Extract result debug", {
+    extractType: typeof extract,
+    extractKeys:
+      extract && typeof extract === "object" ? Object.keys(extract) : null,
+    hasExtractedData:
+      extract && typeof extract === "object"
+        ? "extractedData" in extract
+        : false,
+    extractedDataValue: extract?.extractedData,
+  });
+
   let extractedData = extract?.extractedData;
+
+  // Fallback for models that don't support structured outputs (json_schema)
+  // If extractedData is undefined but extract has user-expected fields, use extract directly
+  if (extractedData === undefined && extract && typeof extract === "object") {
+    // Check if extract looks like user data (not the wrapped schema structure)
+    if (
+      !("shouldUseSmartscrape" in extract) &&
+      !("smartscrape_reasoning" in extract)
+    ) {
+      logger.info(
+        "Model returned unwrapped data, using extract directly as extractedData",
+        {
+          extractKeys: Object.keys(extract),
+        },
+      );
+      extractedData = extract;
+    } else {
+      logger.warn(
+        "Model returned wrapped structure but extractedData is missing",
+        {
+          extractKeys: Object.keys(extract),
+          hasExtractedData: "extractedData" in extract,
+        },
+      );
+    }
+  }
 
   // console.log("shouldUseSmartscrape", extract?.shouldUseSmartscrape);
   // console.log("smartscrape_reasoning", extract?.smartscrape_reasoning);

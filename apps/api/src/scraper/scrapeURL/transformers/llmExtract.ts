@@ -353,7 +353,7 @@ export async function generateCompletions({
             },
             openai: {
               structuredOutputs: false,
-              strictJsonSchema: true,
+              strictJsonSchema: false,
             },
           },
           experimental_telemetry: {
@@ -459,7 +459,7 @@ export async function generateCompletions({
                   },
                 },
                 openai: {
-                  strictJsonSchema: true,
+                  strictJsonSchema: false,
                 },
               },
               experimental_telemetry: {
@@ -630,7 +630,7 @@ export async function generateCompletions({
                 },
               },
               openai: {
-                strictJsonSchema: true,
+                strictJsonSchema: false,
               },
             },
             experimental_telemetry: {
@@ -714,7 +714,7 @@ export async function generateCompletions({
           },
         },
         openai: {
-          strictJsonSchema: true,
+          strictJsonSchema: false,
         },
       },
       system: options.systemPrompt,
