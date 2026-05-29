@@ -29,6 +29,13 @@ Runtime chain: `fc-local / user → fc-cli / HTTP API → apps/api → workers /
 
 Deploy: `external/tools/bin/` exposes scripts to the system `PATH` through symlinks.
 
+| Symlink | Target | Purpose |
+|---------|--------|---------|
+| `external/tools/bin/my-fc` | `projects/firecrawl/my-fc` | Docker Compose service management |
+| `external/tools/bin/fc-cli` | `projects/firecrawl/apps/cli/bin/fc-cli` | CLI command (requires `pnpm build` in `apps/cli/` first) |
+
+After cloning or rebuilding CLI: `ln -sf <absolute-target-path> external/tools/bin/<name>`
+
 ## 3. Development Commands (build format test)
 
 | Scenario | Command | When |
