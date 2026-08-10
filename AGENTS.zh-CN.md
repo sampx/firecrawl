@@ -27,14 +27,14 @@ Canonical references:
 | `docker-compose.yaml` | 自托管服务编排 |
 | `docs/` | 项目设计、架构和部署文档 |
 
-部署：`external/tools/bin/` 通过软链接将脚本暴露到系统 `PATH`。
+部署：`~/.local/bin/` 通过软链接将脚本暴露到系统 `PATH`。
 
 | 软链接 | 目标 | 用途 |
 |--------|------|------|
-| `external/tools/bin/my-fc` | `projects/firecrawl/my-fc` | Docker Compose 服务管理 |
-| `external/tools/bin/fc-cli` | `projects/firecrawl/apps/cli/bin/fc-cli` | CLI 命令（需先在 `apps/cli/` 执行 `pnpm build`） |
+| `~/.local/bin/my-fc` | `projects/firecrawl/my-fc` | Docker Compose 服务管理 |
+| `~/.local/bin/fc-cli` | `projects/firecrawl/apps/cli/bin/fc-cli` | CLI 命令（需先在 `apps/cli/` 执行 `pnpm build`） |
 
-克隆或重新构建 CLI 后：`ln -sf <绝对路径> external/tools/bin/<名称>`
+克隆或重新构建 CLI 后：`ln -sf <绝对路径> ~/.local/bin/<名称>`
 
 ## 3. Development Commands (build format test)
 
