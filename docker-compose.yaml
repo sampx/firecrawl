@@ -33,10 +33,10 @@ x-common-env: &common-env
   POSTGRES_HOST: ${POSTGRES_HOST:-nuq-postgres}
   POSTGRES_PORT: ${POSTGRES_PORT:-5432}
   USE_DB_AUTHENTICATION: ${USE_DB_AUTHENTICATION:-false}
-  NUQ_WORKER_COUNT: ${NUQ_WORKER_COUNT:-8}
+  NUQ_WORKER_COUNT: ${NUQ_WORKER_COUNT:-2}
   CRAWL_CONCURRENT_REQUESTS: ${CRAWL_CONCURRENT_REQUESTS:-10}
   MAX_CONCURRENT_JOBS: ${MAX_CONCURRENT_JOBS:-5}
-  BROWSER_POOL_SIZE: ${BROWSER_POOL_SIZE:-5}
+  BROWSER_POOL_SIZE: ${BROWSER_POOL_SIZE:-2}
   OPENAI_API_KEY: ${OPENAI_API_KEY}
   OPENAI_BASE_URL: ${OPENAI_BASE_URL}
   MODEL_NAME: ${MODEL_NAME}
@@ -77,8 +77,8 @@ services:
       - backend
     # Resource limits for Docker Compose (not Swarm)
     cpus: 2.0
-    mem_limit: 4G
-    memswap_limit: 4G
+    mem_limit: 2G
+    memswap_limit: 2G
     logging:
       driver: "json-file"
       options:
@@ -105,14 +105,16 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_healthy
+      nuq-postgres:
+        condition: service_healthy
     ports:
       - "${PORT:-3002}:${INTERNAL_PORT:-3002}"
     command: node dist/src/harness.js --start-docker
     # Resource limits for Docker Compose (not Swarm)
     # Increase if you have more CPU cores/RAM available
-    cpus: 4.0
-    mem_limit: 8G
-    memswap_limit: 8G
+    cpus: 2.0
+    mem_limit: 3G
+    memswap_limit: 3G
 
   redis:
     # NOTE: If you want to use Valkey (open source) instead of Redis (source available),
@@ -135,6 +137,7 @@ services:
     image: rabbitmq:3-management
     networks:
       - backend
+    mem_limit: 512m
     command: rabbitmq-server
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
@@ -157,6 +160,13 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
     networks:
       - backend
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     logging:
       driver: "json-file"
       options:
