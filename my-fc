@@ -46,11 +46,30 @@ Access: http://localhost:3002
 HELP
 }
 
-# Check if Docker is running
+# Check if Docker is reachable
 check_docker() {
     if ! docker info > /dev/null 2>&1; then
-        echo -e "${RED}Error: Docker is not running. Please start Docker first.${NC}"
+        echo -e "${RED}Error: Docker daemon is not reachable.${NC}"
+        echo -e "${YELLOW}  Check current context: docker context ls${NC}"
+        echo -e "${YELLOW}  Switch context: docker context use <name>${NC}"
         exit 1
+    fi
+}
+
+# Check api image architecture matches the docker host
+check_arch() {
+    local host_arch image_arch
+    host_arch=$(docker info --format '{{.Architecture}}' 2>/dev/null)
+    image_arch=$(docker image inspect firecrawl-api:latest --format '{{.Architecture}}' 2>/dev/null || true)
+
+    if [ -n "$image_arch" ] && [ "$host_arch" != "$image_arch" ]; then
+        echo -e "${RED}❌ Architecture mismatch: host=$host_arch, api image=$image_arch${NC}"
+        echo -e "${YELLOW}   Rebuild for $host_arch first: my-fc build api${NC}"
+        read -p "Continue anyway? (y/n): " -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
     fi
 }
 
@@ -66,6 +85,7 @@ check_directory() {
 cmd_start() {
     check_docker
     check_directory
+    check_arch
 
     cd "$FIREFCRAWL_DIR"
 
@@ -75,10 +95,17 @@ cmd_start() {
     fi
 
     echo "Starting services..."
-    docker compose up -d 2>/dev/null
+    docker compose up -d
 
-    echo "Waiting 30s for startup..."
-    sleep 30
+    echo "Waiting for services to become healthy..."
+    for i in $(seq 1 30); do
+        sleep 2
+        unhealthy=$(docker compose ps --format '{{.Service}} {{.Health}}' 2>/dev/null | grep -c 'unhealthy' || true)
+        starting=$(docker compose ps --format '{{.Service}} {{.Health}}' 2>/dev/null | grep -c 'starting' || true)
+        if [ "$unhealthy" -eq 0 ] && [ "$starting" -eq 0 ]; then
+            break
+        fi
+    done
 
     cmd_status
     echo ""
@@ -105,7 +132,7 @@ cmd_stop() {
         exit 0
     fi
 
-    docker compose down 2>/dev/null
+    docker compose down
     echo -e "${GREEN}✅ Stopped${NC}"
 }
 
@@ -113,15 +140,23 @@ cmd_stop() {
 cmd_restart() {
     check_docker
     check_directory
+    check_arch
 
     cd "$FIREFCRAWL_DIR"
 
-    docker compose down 2>/dev/null
+    docker compose down
     echo "Waiting 5s..."
     sleep 5
-    docker compose up -d 2>/dev/null
-    echo "Waiting 30s for startup..."
-    sleep 30
+    docker compose up -d
+    echo "Waiting for services to become healthy..."
+    for i in $(seq 1 30); do
+        sleep 2
+        unhealthy=$(docker compose ps --format '{{.Service}} {{.Health}}' 2>/dev/null | grep -c 'unhealthy' || true)
+        starting=$(docker compose ps --format '{{.Service}} {{.Health}}' 2>/dev/null | grep -c 'starting' || true)
+        if [ "$unhealthy" -eq 0 ] && [ "$starting" -eq 0 ]; then
+            break
+        fi
+    done
     cmd_status
 }
 
@@ -179,11 +214,11 @@ cmd_logs() {
     if [ -z "$SERVICE" ]; then
         echo -e "${BLUE}Viewing all service logs (last $LINES lines)...${NC}"
         echo ""
-        docker compose logs --tail $LINES 2>/dev/null
+        docker compose logs --tail $LINES
     else
         echo -e "${BLUE}Viewing $SERVICE service logs (last $LINES lines)...${NC}"
         echo ""
-        docker compose logs --tail $LINES $SERVICE 2>/dev/null
+        docker compose logs --tail $LINES $SERVICE
     fi
 
     echo ""
@@ -198,7 +233,7 @@ cmd_ps() {
 
     cd "$FIREFCRAWL_DIR"
 
-    docker compose ps 2>/dev/null
+    docker compose ps
 }
 
 # Enter container shell
@@ -229,10 +264,10 @@ cmd_build() {
 
     if [ -n "$SERVICE" ]; then
         echo "Building: $SERVICE"
-        docker compose build $SERVICE 2>/dev/null
+        docker compose build $SERVICE
     else
         echo "Building all images..."
-        docker compose build 2>/dev/null
+        docker compose build
     fi
 
     echo -e "${GREEN}✅ Done${NC}"
