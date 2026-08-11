@@ -37,9 +37,6 @@ outgoing:
   max_request_timeout: 20.0
   pool_connections: 100
   pool_maxsize: 20
-  proxies:
-    http: http://macmini.local:7890
-    https: http://macmini.local:7890
   source_ips:
     - 0.0.0.0
 

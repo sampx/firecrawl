@@ -30,6 +30,7 @@ Commands:
     start           Start all services
     stop            Stop all services
     restart         Restart all services
+    rm              Remove stopped containers (docker compose rm)
     status          Show service status and health
     health          Check API health (HTTP probe)
     logs [svc] [n]  View logs (default: all, 50 lines)
@@ -59,8 +60,12 @@ check_docker() {
 # Check api image architecture matches the docker host
 check_arch() {
     local host_arch image_arch
-    host_arch=$(docker info --format '{{.Architecture}}' 2>/dev/null)
-    image_arch=$(docker image inspect firecrawl-api:latest --format '{{.Architecture}}' 2>/dev/null || true)
+    host_arch=$(docker info --format '{{.Architecture}}' || true)
+    image_arch=$(docker image inspect firecrawl-api:latest --format '{{.Architecture}}' || true)
+
+    if [[ "$host_arch" == "x86_64" ]] && [[ "$image_arch" == "amd64" ]]; then
+        return 0
+    fi
 
     if [ -n "$image_arch" ] && [ "$host_arch" != "$image_arch" ]; then
         echo -e "${RED}❌ Architecture mismatch: host=$host_arch, api image=$image_arch${NC}"
@@ -79,6 +84,23 @@ check_directory() {
         echo -e "${RED}Error: Firecrawl directory does not exist: $FIREFCRAWL_DIR${NC}"
         exit 1
     fi
+}
+
+# Detect API host from docker context (local socket -> localhost, remote tcp/ssh -> host IP)
+get_api_host() {
+    local ctx_host
+    ctx_host=$(docker context inspect --format '{{.Endpoints.docker.Host}}' 2>/dev/null || echo "unix:///var/run/docker.sock")
+    case "$ctx_host" in
+        unix://*)
+            echo "localhost"
+            ;;
+        tcp://*|ssh://*)
+            echo "$ctx_host" | sed -E 's|^[a-z]+://([^:/]+).*|\1|'
+            ;;
+        *)
+            echo "localhost"
+            ;;
+    esac
 }
 
 # Start services
@@ -109,7 +131,7 @@ cmd_start() {
 
     cmd_status
     echo ""
-    echo -e "${GREEN}API: http://localhost:3002${NC}"
+    echo -e "${GREEN}API: http://$(get_api_host):3002${NC}"
 }
 
 # Stop services
@@ -160,6 +182,33 @@ cmd_restart() {
     cmd_status
 }
 
+# Remove stopped containers
+cmd_rm() {
+    check_docker
+    check_directory
+
+    cd "$FIREFCRAWL_DIR"
+
+    if [ $(docker compose ps -aq 2>/dev/null | wc -l | tr -d ' ') -eq 0 ]; then
+        echo -e "${YELLOW}No containers to remove${NC}"
+        exit 0
+    fi
+
+    echo "Containers to remove:"
+    docker compose ps -a --format 'table {{.Name}}\t{{.Status}}'
+    echo ""
+    read -p "Remove stopped containers? (y/n): " -n 1 -r
+    echo ""
+
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Cancelled"
+        exit 0
+    fi
+
+    docker compose rm -f
+    echo -e "${GREEN}✅ Removed${NC}"
+}
+
 # View status
 cmd_status() {
     check_docker
@@ -199,6 +248,11 @@ cmd_status() {
             echo -e "${RED}❌ $service (not found)${NC}"
         fi
     done
+
+    echo ""
+    echo -e "${BLUE}API endpoint: ${NC}http://$(get_api_host):3002"
+    echo -e "${BLUE}fc-cli usage: ${NC}fc-cli --api-url http://$(get_api_host):3002 <command>"
+    echo -e "${BLUE}              ${NC}或设置环境变量: export FIRECRAWL_API_URL=http://$(get_api_host):3002"
 }
 
 # View logs
@@ -275,9 +329,9 @@ cmd_build() {
 
 # Check API health via HTTP
 cmd_health() {
-    local API_URL="http://localhost:3002"
+    local API_URL="http://$(get_api_host):3002"
     
-    echo "Checking API health..."
+    echo "Checking API health: $API_URL"
     echo ""
     
     # 1. Basic connectivity
@@ -303,7 +357,7 @@ cmd_health() {
     local scrape_result
     scrape_result=$(curl -s --max-time 30 -X POST "$API_URL/v2/scrape" \
         -H "Content-Type: application/json" \
-        -d '{"url": "https://example.com"}' 2>/dev/null)
+        -d '{"url": "https://example.org"}' 2>/dev/null)
     
     if echo "$scrape_result" | grep -q '"success":true'; then
         echo -e "${GREEN}✅ Working${NC}"
@@ -326,6 +380,9 @@ case "${1:-}" in
         ;;
     stop)
         cmd_stop
+        ;;
+    rm)
+        cmd_rm
         ;;
     restart)
         cmd_restart
