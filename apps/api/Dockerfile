@@ -1,6 +1,4 @@
 # syntax=docker/dockerfile:1
-# Build arguments for customizing mirror sources
-ARG APT_MIRROR=mirrors.aliyun.com
 
 FROM node:22-slim AS base
 
@@ -22,6 +20,7 @@ RUN cd sharedLibs/go-html-to-md && \
     go mod download && \
     go build -o libhtml-to-markdown.so -buildmode=c-shared html-to-markdown.go
 
+# Install dependencies and build
 FROM base AS build
 WORKDIR /app
 
@@ -59,108 +58,14 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://rsproxy.cn/rustup-init.sh | sh 
     && chmod -R a+w $RUSTUP_HOME $CARGO_HOME
 
 # Configure Cargo to use Chinese mirror and git fetch with cli
-RUN mkdir -p $CARGO_HOME && \
-    echo '[source.crates-io]' >> $CARGO_HOME/config.toml && \
-    echo 'replace-with = "rsproxy-sparse"' >> $CARGO_HOME/config.toml && \
-    echo '[source.rsproxy-sparse]' >> $CARGO_HOME/config.toml && \
-    echo 'registry = "sparse+https://rsproxy.cn/index/"' >> $CARGO_HOME/config.toml && \
-    echo '[net]' >> $CARGO_HOME/config.toml && \
-    echo 'git-fetch-with-cli = true' >> $CARGO_HOME/config.toml && \
-    echo 'retry = 5' >> $CARGO_HOME/config.toml
-
-# Build Go shared library
-FROM golang:1.24 AS go-build
-WORKDIR /app
-COPY apps/api/sharedLibs/go-html-to-md ./sharedLibs/go-html-to-md
-ENV GOPROXY=https://goproxy.cn,direct
-RUN cd sharedLibs/go-html-to-md && \
-    go mod download && \
-    go build -o libhtml-to-markdown.so -buildmode=c-shared html-to-markdown.go
-
-# Install dependencies and build
-FROM base AS build
-WORKDIR /app
-
-# Install system dependencies
-RUN echo "deb http://mirrors.aliyun.com/debian bookworm main contrib non-free" > /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian bookworm-updates main contrib non-free" >> /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian-security bookworm-security main contrib non-free" >> /etc/apt/sources.list && \
-    rm -rf /etc/apt/sources.list.d/* && \
-    apt-get clean && \
-    apt-get update --fix-missing && \
-    apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    build-essential \
-    pkg-config \
-    python3 \
-    libpq-dev \
-    git \
-    && update-ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Rust with China mirror
-ENV RUSTUP_HOME=/usr/local/rustup \
-    CARGO_HOME=/usr/local/cargo \
-    PATH=/usr/local/cargo/bin:$PATH \
-    RUSTUP_DIST_SERVER=https://rsproxy.cn \
-    RUSTUP_UPDATE_ROOT=https://rsproxy.cn/rustup
-
-RUN curl --proto '=https' --tlsv1.2 -sSf https://rsproxy.cn/rustup-init.sh | sh -s -- -y --no-modify-path \
-    && chmod -R a+w $RUSTUP_HOME $CARGO_HOME
-
-# Configure Cargo
-RUN mkdir -p $CARGO_HOME && \
-    echo '[source.crates-io]' >> $CARGO_HOME/config.toml && \
-    echo 'replace-with = "rsproxy-sparse"' >> $CARGO_HOME/config.toml && \
-    echo '[source.rsproxy-sparse]' >> $CARGO_HOME/config.toml && \
-    echo 'registry = "sparse+https://rsproxy.cn/index/"' >> $CARGO_HOME/config.toml && \
-    echo '[net]' >> $CARGO_HOME/config.toml && \
-    echo 'git-fetch-with-cli = true' >> $CARGO_HOME/config.toml && \
-    echo 'retry = 5' >> $CARGO_HOME/config.toml
-
-# Build Go shared library
-FROM golang:1.24 AS go-build
-WORKDIR /app
-COPY apps/api/sharedLibs/go-html-to-md ./sharedLibs/go-html-to-md
-ENV GOPROXY=https://goproxy.cn,direct
-RUN cd sharedLibs/go-html-to-md && \
-    go mod download && \
-    go build -o libhtml-to-markdown.so -buildmode=c-shared html-to-markdown.go
-
-# Install dependencies and build
-FROM base AS build
-WORKDIR /app
-
-# Install system dependencies
-RUN echo "deb http://mirrors.aliyun.com/debian bookworm main contrib non-free" > /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian bookworm-updates main contrib non-free" >> /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian-security bookworm-security main contrib non-free" >> /etc/apt/sources.list && \
-    rm -rf /etc/apt/sources.list.d/* && \
-    apt-get clean && \
-    apt-get update --fix-missing && \
-    apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    build-essential \
-    pkg-config \
-    python3 \
-    libpq-dev \
-    git \
-    && update-ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Rust with China mirror
-ENV RUSTUP_HOME=/usr/local/rustup \
-    CARGO_HOME=/usr/local/cargo \
-    PATH=/usr/local/cargo/bin:$PATH \
-    RUSTUP_DIST_SERVER=https://rsproxy.cn \
-    RUSTUP_UPDATE_ROOT=https://rsproxy.cn/rustup
-
-RUN curl --proto '=https' --tlsv1.2 -sSf https://rsproxy.cn/rustup-init.sh | sh -s -- -y --no-modify-path \
-    && chmod -R a+w $RUSTUP_HOME $CARGO_HOME
-
-# Configure Cargo
+# git 依赖 (github.com) 通过代理拉取 (软路由 hysteria), 不走 gitclone 镜像 (其缓存不完整)
+ARG PROXY_URL=http://192.168.1.111:8123
+ENV http_proxy=${PROXY_URL} \
+    https_proxy=${PROXY_URL} \
+    HTTP_PROXY=${PROXY_URL} \
+    HTTPS_PROXY=${PROXY_URL} \
+    NO_PROXY=localhost,127.0.0.1,registry.npmmirror.com,rsproxy.cn,goproxy.cn,mirrors.aliyun.com,searxng,api,redis,rabbitmq,playwright-service,nuq-postgres \
+    no_proxy=localhost,127.0.0.1,registry.npmmirror.com,rsproxy.cn,goproxy.cn,mirrors.aliyun.com,searxng,api,redis,rabbitmq,playwright-service,nuq-postgres
 RUN mkdir -p $CARGO_HOME && \
     echo '[source.crates-io]' >> $CARGO_HOME/config.toml && \
     echo 'replace-with = "rsproxy-sparse"' >> $CARGO_HOME/config.toml && \
@@ -177,8 +82,9 @@ COPY apps/api/native ./native
 
 # Install dependencies and build native module (This takes a long time, cache it!)
 RUN pnpm config set registry https://registry.npmmirror.com && \
-    pnpm install --no-frozen-lockfile --ignore-scripts && \
-    cd native && pnpm build && cd ..
+    pnpm install --no-frozen-lockfile --ignore-scripts
+
+RUN cd native && pnpm build && cd ..
 
 # Copy source files AFTER building the heavy native module
 COPY apps/api/src ./src

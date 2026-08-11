@@ -22,3 +22,8 @@ labs
 contents
 docs
 scripts
+# Rust/native build artifacts (platform-specific, rebuilt inside docker)
+**/target
+**/*.node
+**/target/
+**/target/*
