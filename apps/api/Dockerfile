@@ -75,15 +75,19 @@ RUN mkdir -p $CARGO_HOME && \
     echo 'git-fetch-with-cli = true' >> $CARGO_HOME/config.toml && \
     echo 'retry = 5' >> $CARGO_HOME/config.toml
 
-# Copy dependency files and native module first for better caching
+# Copy dependency manifests first for better caching (native/package.json only;
+# full native source copied after pnpm install so Cargo.toml changes don't
+# invalidate the pnpm layer)
 COPY apps/api/pnpm-lock.yaml apps/api/pnpm-workspace.yaml apps/api/package.json ./
+COPY apps/api/native/package.json ./native/package.json
 COPY apps/api/tsconfig.json ./
-COPY apps/api/native ./native
 
-# Install dependencies and build native module (This takes a long time, cache it!)
+# Install dependencies (This takes a long time, cache it!)
 RUN pnpm config set registry https://registry.npmmirror.com && \
     pnpm install --no-frozen-lockfile --ignore-scripts
 
+# Copy full native module and build (Rust compile, slow)
+COPY apps/api/native ./native
 RUN cd native && pnpm build && cd ..
 
 # Copy source files AFTER building the heavy native module
