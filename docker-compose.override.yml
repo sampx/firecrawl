@@ -13,7 +13,7 @@ services:
       # 可选代理: PROXY_SERVER 为空时不起作用 (走透明代理), 设置后显式走代理
       HTTP_PROXY: ${PROXY_SERVER:-}
       HTTPS_PROXY: ${PROXY_SERVER:-}
-      NO_PROXY: localhost,127.0.0.1,searxng,api,redis,rabbitmq,playwright-service,nuq-postgres
+      NO_PROXY: localhost,127.0.0.1,searxng,api,redis,playwright-service,nuq-postgres
     networks:
       - backend
     healthcheck:
@@ -36,7 +36,5 @@ services:
         condition: service_started
       playwright-service:
         condition: service_started
-      rabbitmq:
-        condition: service_healthy
       searxng:
         condition: service_healthy

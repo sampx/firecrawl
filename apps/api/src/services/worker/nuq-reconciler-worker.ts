@@ -7,7 +7,7 @@ import { reconcileConcurrencyQueue } from "../../lib/concurrency-queue-reconcile
 import { Counter, register } from "prom-client";
 import Express from "express";
 
-const RECONCILER_INTERVAL_MS = 60 * 1000;
+const RECONCILER_INTERVAL_MS = config.NUQ_RECONCILER_INTERVAL_MS ?? 60 * 1000;
 
 const reconcilerRunsTotal = new Counter({
   name: "concurrency_queue_reconciler_runs_total",

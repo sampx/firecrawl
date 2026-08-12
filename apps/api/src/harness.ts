@@ -768,18 +768,20 @@ async function startServices(command?: string[]): Promise<Services> {
     ),
   );
 
-  const nuqPrefetchWorker = execForward(
-    "nuq-prefetch-worker",
-    process.argv[2] === "--start-docker"
-      ? "node dist/src/services/worker/nuq-prefetch-worker.js"
-      : "pnpm nuq-prefetch-worker:production",
-    {
-      NUQ_PREFETCH_WORKER_PORT: String(NUQ_PREFETCH_WORKER_PORT),
-      NUQ_REDUCE_NOISE: "true",
-      NUQ_POD_NAME: "nuq-prefetch-worker-0",
-      NUQ_PREFETCH_REPLICAS: String(1),
-    },
-  );
+  const nuqPrefetchWorker = config.NUQ_RABBITMQ_URL
+    ? execForward(
+        "nuq-prefetch-worker",
+        process.argv[2] === "--start-docker"
+          ? "node dist/src/services/worker/nuq-prefetch-worker.js"
+          : "pnpm nuq-prefetch-worker:production",
+        {
+          NUQ_PREFETCH_WORKER_PORT: String(NUQ_PREFETCH_WORKER_PORT),
+          NUQ_REDUCE_NOISE: "true",
+          NUQ_POD_NAME: "nuq-prefetch-worker-0",
+          NUQ_PREFETCH_REPLICAS: String(1),
+        },
+      )
+    : undefined;
 
   const nuqReconcilerWorker = execForward(
     "nuq-reconciler",
@@ -849,7 +851,6 @@ async function stopDevelopmentServices(services: Services) {
     services.extractWorker?.process,
     services.command?.process,
   ].filter((p): p is ChildProcess => !!p);
-
   await Promise.race([
     await Promise.all(
       processesToStop.map(proc => terminateProcess(proc, true)),

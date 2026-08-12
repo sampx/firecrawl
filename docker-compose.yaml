@@ -101,15 +101,12 @@ services:
       PORT: ${INTERNAL_PORT:-3002}
       EXTRACT_WORKER_PORT: ${EXTRACT_WORKER_PORT:-3004}
       WORKER_PORT: ${WORKER_PORT:-3005}
-      NUQ_RABBITMQ_URL: amqp://rabbitmq:5672
       ENV: local
     depends_on:
       redis:
         condition: service_started
       playwright-service:
         condition: service_started
-      rabbitmq:
-        condition: service_healthy
       nuq-postgres:
         condition: service_healthy
     ports:
@@ -138,30 +135,6 @@ services:
         max-file: "2"
         compress: "true"
     
-  rabbitmq:
-    image: rabbitmq:3-management
-    restart: unless-stopped
-    networks:
-      - backend
-    mem_limit: 512m
-    command: rabbitmq-server
-    environment:
-      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit vm_memory_high_watermark 0.8"
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
-      interval: 10s
-      timeout: 10s
-      retries: 10
-      start_period: 60s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "5m"
-        max-file: "2"
-        compress: "true"
-  
   nuq-postgres:
     build: apps/nuq-postgres
     image: firecrawl-nuq-postgres:latest
@@ -177,7 +150,7 @@ services:
       - nuq-postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 10
       start_period: 60s
@@ -194,4 +167,3 @@ networks:
 
 volumes:
   nuq-postgres-data:
-  rabbitmq-data:

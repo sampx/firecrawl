@@ -1,10 +1,25 @@
-import amqp from "amqplib";
+import IORedis from "ioredis";
 import { config } from "../config";
 import { logger as _logger } from "../lib/logger";
 
 const EXTRACT_QUEUE = "extract.jobs";
-const EXTRACT_DLX = "extract.dlx";
 const EXTRACT_DLQ = "extract.dlq";
+
+// BRPOP is a blocking command and is incompatible with enableAutoPipelining,
+// so this queue uses its own connection without auto-pipelining.
+// Each consumer gets its own connection: two concurrent BRPOPs on one
+// ioredis connection would serialize and starve one of the queues.
+const queueConnection = new IORedis(config.REDIS_URL!, {
+  maxRetriesPerRequest: null,
+  enableOfflineQueue: true,
+});
+
+function createConsumerConnection(): IORedis {
+  return new IORedis(config.REDIS_URL!, {
+    maxRetriesPerRequest: null,
+    enableOfflineQueue: true,
+  });
+}
 
 export type ExtractJobData = {
   extractId: string;
@@ -16,65 +31,11 @@ export type ExtractJobData = {
   createdAt: number;
 };
 
-let connection: amqp.ChannelModel | null = null;
-let channel: amqp.Channel | null = null;
-
-async function getChannel(): Promise<amqp.Channel> {
-  if (channel) return channel;
-
-  const url = config.NUQ_RABBITMQ_URL;
-  if (!url) {
-    throw new Error("NUQ_RABBITMQ_URL is not configured");
-  }
-
-  connection = await amqp.connect(url);
-  channel = await connection.createChannel();
-
-  // Set up the dead letter exchange
-  await channel.assertExchange(EXTRACT_DLX, "direct", { durable: true });
-
-  // Set up the dead letter queue
-  await channel.assertQueue(EXTRACT_DLQ, {
-    durable: true,
-    arguments: {
-      "x-queue-type": "quorum",
-    },
-  });
-  await channel.bindQueue(EXTRACT_DLQ, EXTRACT_DLX, EXTRACT_QUEUE);
-
-  // Set up the main queue with DLX - no retries (messages go straight to DLQ on reject/crash)
-  await channel.assertQueue(EXTRACT_QUEUE, {
-    durable: true,
-    arguments: {
-      "x-queue-type": "quorum",
-      "x-dead-letter-exchange": EXTRACT_DLX,
-      "x-dead-letter-routing-key": EXTRACT_QUEUE,
-      "x-delivery-limit": 1,
-    },
-  });
-
-  connection.on("close", () => {
-    _logger.warn("Extract queue connection closed");
-    connection = null;
-    channel = null;
-  });
-
-  connection.on("error", err => {
-    _logger.error("Extract queue connection error", { error: err });
-  });
-
-  return channel;
-}
-
 export async function addExtractJob(
   extractId: string,
   data: ExtractJobData,
 ): Promise<void> {
-  const ch = await getChannel();
-  ch.sendToQueue(EXTRACT_QUEUE, Buffer.from(JSON.stringify(data)), {
-    persistent: true,
-    messageId: extractId,
-  });
+  await queueConnection.lpush(EXTRACT_QUEUE, JSON.stringify(data));
   _logger.info("Extract job added to queue", { extractId });
 }
 
@@ -84,82 +45,74 @@ export async function consumeExtractJobs(
     ack: () => void,
     nack: () => void,
   ) => Promise<void>,
+  signal?: AbortSignal,
 ): Promise<void> {
-  const ch = await getChannel();
-  await ch.prefetch(1);
+  const connection = createConsumerConnection();
+  while (!signal?.aborted) {
+    const result = await connection.brpop(EXTRACT_QUEUE, 0);
+    if (!result) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      continue;
+    }
 
-  await ch.consume(
-    EXTRACT_QUEUE,
-    async msg => {
-      if (!msg) return;
+    const data = JSON.parse(result[1]) as ExtractJobData;
+    const logger = _logger.child({
+      module: "extract-queue",
+      extractId: data.extractId,
+    });
 
-      const data = JSON.parse(msg.content.toString()) as ExtractJobData;
-      const logger = _logger.child({
-        module: "extract-queue",
-        extractId: data.extractId,
-      });
+    logger.info("Processing extract job");
 
-      logger.info("Processing extract job");
-
-      try {
-        await handler(
-          data,
-          () => ch.ack(msg),
-          () => ch.nack(msg, false, false), // Don't requeue - send to DLX
-        );
-      } catch (error) {
-        logger.error("Extract job handler threw an error", { error });
-        // Don't requeue - send to DLX
-        ch.nack(msg, false, false);
-      }
-    },
-    { noAck: false },
-  );
-
-  _logger.info("Started consuming extract jobs");
+    try {
+      await handler(
+        data,
+        () => {},
+        () => {
+          connection
+            .rpush(EXTRACT_DLQ, JSON.stringify(data))
+            .catch(err =>
+              logger.error("Failed to nack extract job to DLQ", { err }),
+            );
+        },
+      );
+    } catch (error) {
+      logger.error("Extract job handler threw an error", { error });
+      await connection.rpush(EXTRACT_DLQ, JSON.stringify(data));
+    }
+  }
+  await connection.quit().catch(() => {});
 }
 
 export async function consumeExtractDLQ(
   handler: (data: ExtractJobData) => Promise<void>,
+  signal?: AbortSignal,
 ): Promise<void> {
-  const ch = await getChannel();
-  await ch.prefetch(1);
+  const connection = createConsumerConnection();
+  while (!signal?.aborted) {
+    const result = await connection.brpop(EXTRACT_DLQ, 0);
+    if (!result) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      continue;
+    }
 
-  await ch.consume(
-    EXTRACT_DLQ,
-    async msg => {
-      if (!msg) return;
+    const data = JSON.parse(result[1]) as ExtractJobData;
+    const logger = _logger.child({
+      module: "extract-dlq",
+      extractId: data.extractId,
+    });
 
-      const data = JSON.parse(msg.content.toString()) as ExtractJobData;
-      const logger = _logger.child({
-        module: "extract-dlq",
-        extractId: data.extractId,
-      });
+    logger.info("Processing dead-lettered extract job");
 
-      logger.info("Processing dead-lettered extract job");
-
-      try {
-        await handler(data);
-        ch.ack(msg);
-      } catch (error) {
-        logger.error("DLQ handler threw an error, requeueing", { error });
-        // Requeue DLQ messages on error so we don't lose them
-        ch.nack(msg, false, true);
-      }
-    },
-    { noAck: false },
-  );
-
-  _logger.info("Started consuming extract DLQ");
+    try {
+      await handler(data);
+    } catch (error) {
+      logger.error("DLQ handler threw an error, requeueing", { error });
+      await connection.lpush(EXTRACT_DLQ, JSON.stringify(data));
+    }
+  }
+  await connection.quit().catch(() => {});
 }
 
 export async function shutdownExtractQueue(): Promise<void> {
-  if (channel) {
-    await channel.close();
-    channel = null;
-  }
-  if (connection) {
-    await connection.close();
-    connection = null;
-  }
+  await queueConnection.quit().catch(() => {});
 }
